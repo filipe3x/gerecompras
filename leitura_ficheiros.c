@@ -40,8 +40,8 @@ int gestaoFiliaisMain(){
 	// travessiaTesteGestaoFilial(moduloGestao->filial[f]);
 	// travessiaFaturacao(moduloFaturacao);
 
-	// freeModuloGestaoFiliais(moduloGestao);
-	// freeModuloFaturacao(moduloFaturacao);
+	freeModuloGestaoFiliais(moduloGestao);
+	freeModuloFaturacao(moduloFaturacao);
 
     return (EXIT_SUCCESS);
 }
@@ -71,4 +71,45 @@ int abrirFicheiroClientes(String nomeFicheiro){
 
     return(EXIT_SUCCESS);
 }
+
+int lerFicheiroVendas(){
+	Vendas vendas = filiaisInit();
+	avlFiliaisInit(vendas);
+
+	const char *nomeFicheiro = "Vendas_100K.txt";
+	const char *modoAbertura = "r";
+	FILE *ficheiroVendas100k = fopen(nomeFicheiro, modoAbertura);
+
+	int i = 0;
+	VENDA p;
+	char linhaLida[50];
+	StringVenda structStrVendas;
+
+	while(fgets(linhaLida, 39, ficheiroVendas100k) && i < TAMANHO){
+		linhaLida[strcspn( linhaLida, "\r\n")] = 0; //apagar new lines de cada linha
+		
+		//Inserir na estrutura de Strings temporariamente
+		lerLinhaVenda(linhaLida,&structStrVendas);
+
+		//*INSERIR NA AVL
+		VENDA novaVenda  = linhaVendaInit(); //alocar espaco para nova entrada no modulo de dados
+		//Interpretar valores na estrutura temporaria structStrVendas e inserir valores na estrutura novaVenda
+		inserirLinhaVenda(novaVenda, structStrVendas);
+		//copia deep das estruturas contidas em novaVenda
+		VENDA clone = linhaVendaInit(); 
+		clonelinhaVenda(novaVenda,clone);
+		//Finalmente inserir a estrutura final na AVL
+		int ind = calcula_indice_filial(clone);
+		p = (Venda) avl_insert(vendas->filial[ind], clone);
+		
+		i++;
+	}
+
+	fclose(ficheiroVendas100k);
+
+	travessiaTesteVendas(vendas);
+
+    return (EXIT_SUCCESS);
+}
+
 

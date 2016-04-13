@@ -118,7 +118,7 @@ PAGINA_RESULTADOS travessiaClientesPorLetra(CatalogoClientes catalogo, char letr
     int i = calculaIndiceCliente(toupper(letra));
     int totalResultados = catalogo->totalClientes[i];
 
-    TRAVERSER trav = avl_t_alloc();
+    TravessiaModulo trav = avl_trav_alloc();
     avl_t_init(trav, catalogo->indice[i]);
 
     CodigoCliente_st cliente = avl_t_next(trav);
@@ -133,7 +133,7 @@ PAGINA_RESULTADOS travessiaClientesPorLetra(CatalogoClientes catalogo, char letr
     }
 
     // printf("Total clientes começados por %c: %d\n", toupper(c), getTotalClientes(catalogo, i));
-    avl_t_free(trav); //free
+    avl_trav_free(trav); //free
 
     return pagina;
 }
@@ -229,9 +229,9 @@ void travessiaTesteClientes(CatalogoClientes catalogo){
     printf("Total clientes começados por %c: %d\n", toupper(c), getTotalClientes(catalogo, calculaIndiceCliente(c)));
 }
 
-void freeTravessiaCatalogoClientes(TRAVERSER travessia){
+void freeTravessiaCatalogoClientes(TravessiaModulo travessia){
     if(travessia != NULL)
-        avl_t_free(travessia);
+        avl_trav_free(travessia);
 
     free(travessia);
 }

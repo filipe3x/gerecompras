@@ -245,7 +245,7 @@ void travessiaTesteVendas(Vendas vendas){
 	int f;
 	scanf("%d",&f);
 
-    TRAVERSER trav = avl_t_alloc();
+    TravessiaModulo trav = avl_trav_alloc();
 	avl_t_init(trav, vendas->filial[f]);
 
 	int nr = 0;
@@ -257,46 +257,6 @@ void travessiaTesteVendas(Vendas vendas){
 		free(clone);
 		nr++;
 	}
-}
-
-int lerFicheiroVendas(){
-	Vendas vendas = filiaisInit();
-	avlFiliaisInit(vendas);
-
-	const char *nomeFicheiro = "Vendas_100K.txt";
-	const char *modoAbertura = "r";
-	FILE *ficheiroVendas100k = fopen(nomeFicheiro, modoAbertura);
-
-	int i = 0;
-	VENDA p;
-	char linhaLida[50];
-	StringVenda structStrVendas;
-
-	while(fgets(linhaLida, 39, ficheiroVendas100k) && i < TAMANHO){
-		linhaLida[strcspn( linhaLida, "\r\n")] = 0; //apagar new lines de cada linha
-		
-		//Inserir na estrutura de Strings temporariamente
-		lerLinhaVenda(linhaLida,&structStrVendas);
-
-		//*INSERIR NA AVL
-		VENDA novaVenda  = linhaVendaInit(); //alocar espaco para nova entrada no modulo de dados
-		//Interpretar valores na estrutura temporaria structStrVendas e inserir valores na estrutura novaVenda
-		inserirLinhaVenda(novaVenda, structStrVendas);
-		//copia deep das estruturas contidas em novaVenda
-		VENDA clone = linhaVendaInit(); 
-		clonelinhaVenda(novaVenda,clone);
-		//Finalmente inserir a estrutura final na AVL
-		int ind = calcula_indice_filial(clone);
-		p = (Venda) avl_insert(vendas->filial[ind], clone);
-		
-		i++;
-	}
-
-	fclose(ficheiroVendas100k);
-
-	travessiaTesteVendas(vendas);
-
-    return (EXIT_SUCCESS);
 }
 
 // Modulo Registo de produtos
@@ -446,7 +406,7 @@ void travessiaTesteRegistoProdutos(GestaoCliente modulo){
 	for (i = 0; i < 12; i++)
 		for(j = 0; j < 2; j++)
 			if(modulo->mes[i][j] != NULL){
-				TRAVERSER trav = avl_t_alloc();
+				TravessiaModulo trav = avl_trav_alloc();
 				avl_t_init(trav, modulo->mes[i][j]);
 
 				int nr = 0;
@@ -465,7 +425,7 @@ void travessiaTesteRegistoClientes(GestaoProduto modulo){
 	for (i = 0; i < 12; i++)
 		for(j = 0; j < 2; j++)
 			if(modulo->mes[i][j] != NULL){
-				TRAVERSER trav = avl_t_alloc();
+				TravessiaModulo trav = avl_trav_alloc();
 				avl_t_init(trav, modulo->mes[i][j]);
 
 				int nr = 0;
@@ -479,7 +439,7 @@ void travessiaTesteRegistoClientes(GestaoProduto modulo){
 
 void travessiaTesteGestaoFilial(GestaoFilial modulo){
 	//travessia
-    TRAVERSER trav = avl_t_alloc();
+    TravessiaModulo trav = avl_trav_alloc();
 	avl_t_init(trav, modulo->clientes);
 
 	printf("**MODULO CLIENTES** - total: %d\n",modulo->totalClientes);
@@ -494,7 +454,7 @@ void travessiaTesteGestaoFilial(GestaoFilial modulo){
 
 	printf("**MODULO PRODUTOS** - total: %d\n",modulo->totalProdutos);
 
-    trav = avl_t_alloc();
+    trav = avl_trav_alloc();
 	avl_t_init(trav, modulo->produtos);
 	nr = 0;
 	GestaoProduto meuproduto;

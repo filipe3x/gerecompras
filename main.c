@@ -15,7 +15,7 @@
 #define MAX_BUFFER_VENDAS 64
 #define MAX_BUFFER_CATALOGO 32
 
-#include "arvoreAVL.c"
+#include "avl.c"
 #include "leitura_ficheiros.c"
 #include "menu.c"
 
