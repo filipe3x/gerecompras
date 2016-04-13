@@ -71,7 +71,7 @@ static char* deepCopiaStr(char *orig){
 */
 
 /*
-//AB9012
+
 static int traduzirProduto(char *produto, ProdutoCod *produtoStruct){
 	char *str;
 	dividirCodigo(produto, 2, &produtoStruct->prefixo, &str);
@@ -79,12 +79,11 @@ static int traduzirProduto(char *produto, ProdutoCod *produtoStruct){
 	return 0;
 }
 
-//L4891
+
 static int traduzirCliente(char *cliente, ClienteCod *clienteStruct){
 	return 0;
 }
 
-//KR1583 77.72 128 P L4891 2 1
 static int traduzirLinhaVenda(char *linha){
 	return 0;
 }
