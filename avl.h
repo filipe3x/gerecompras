@@ -51,7 +51,7 @@ void avl_free (struct libavl_allocator *, void *);
 #define AVL_MAX_HEIGHT 64
 #endif
 
-/* cenas acrescentadas */
+/* Re-definicao do nome das estruturas */
 typedef struct avl_table* Modulo;
 typedef Modulo Registos;
 
