@@ -56,13 +56,18 @@ struct avl_traverser
     unsigned long avl_generation;       /* Generation number. */
   };
 
-/* Funcoes auxiliares para alocar/libertar memoria para a estrutura auxiliar de travessia da avl */
+/* Funcoes auxiliares para alocar/libertar memoria para a estrutura auxiliar de travessia da avl. */
 TravessiaModulo avl_trav_alloc(){
     return (TravessiaModulo) malloc(sizeof(struct avl_traverser));
 }
 
 void avl_trav_free(TravessiaModulo it){
     free(it);
+}
+
+/* Funcao para saber nr de nos. */
+size_t avl_node_count(struct avl_table *tab){
+    return tab->avl_count;
 }
 
 /* Creates and returns a new table
