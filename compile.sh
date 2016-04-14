@@ -1,1 +1,1 @@
-gcc -Wall -g -pedantic main.c -o gerecompras && ./gerecompras
+gcc -Wall -g -pedantic main.c avl.c -o gerecompras && ./gerecompras
