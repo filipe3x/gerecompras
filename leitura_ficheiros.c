@@ -11,7 +11,7 @@ void abrirFicheiroVendas(String nomeFicheiro, MODULO_GESTAO_FILIAIS moduloGestao
 	VENDA novaVenda  = linhaVendaInit(); //alocar espaco para novaVenda
 	StringVenda structStrVendas;
 
-	while(fgets(linhaLida, MAX_BUFFER_VENDAS, ficheiroVendas) && i < TAMANHO){ //max 39 caract por linha
+	while(fgets(linhaLida, MAX_BUFFER_VENDAS, ficheiroVendas) && i < MAXLINHAS){ //max 39 caract por linha
 		linhaLida[strcspn( linhaLida, "\r\n")] = 0; //apagar new lines de cada linha
 		lerLinhaVenda(linhaLida,&structStrVendas); //Inserir na estrutura de Strings temporariamente
 		inserirLinhaVenda(novaVenda, structStrVendas); //Interpretar valores na estrutura temporaria structStrVendas e inserir valores na estrutura novaVenda  (as strings antigas sao aproveitadas)
@@ -53,7 +53,7 @@ int abrirFicheiroClientes(String nomeFicheiro){
     FILE *ficheiroClientes = fopen(nomeFicheiro, "r"); //abrir ficheiro clientes
 
     int nrlinhasLidas = 0;
-    while(fgets(linhaLida, MAX_BUFFER_CATALOGO, ficheiroClientes) && nrlinhasLidas < TAMANHO){ //ler linha ficheiro
+    while(fgets(linhaLida, MAX_BUFFER_CATALOGO, ficheiroClientes) && nrlinhasLidas < MAXLINHAS){ //ler linha ficheiro
         linhaLida[strcspn( linhaLida, "\r\n")] = 0; //apagar new lines de cada linha
         inserirClienteCatalogo(catalogo, linhaLida);
         nrlinhasLidas++;
@@ -85,7 +85,7 @@ int lerFicheiroVendas(){
 	char linhaLida[50];
 	StringVenda structStrVendas;
 
-	while(fgets(linhaLida, 39, ficheiroVendas100k) && i < TAMANHO){
+	while(fgets(linhaLida, 39, ficheiroVendas100k) && i < MAXLINHAS){
 		linhaLida[strcspn( linhaLida, "\r\n")] = 0; //apagar new lines de cada linha
 		
 		//Inserir na estrutura de Strings temporariamente
@@ -99,7 +99,7 @@ int lerFicheiroVendas(){
 		VENDA clone = linhaVendaInit(); 
 		clonelinhaVenda(novaVenda,clone);
 		//Finalmente inserir a estrutura final na AVL
-		int ind = calcula_indice_filial(clone);
+		int ind = calculaIndicieFilial(clone);
 		p = (Venda) avl_insert(vendas->filial[ind], clone);
 		
 		i++;
