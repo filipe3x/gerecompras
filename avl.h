@@ -72,7 +72,10 @@ void *avl_find (const struct avl_table *, const void *);
 void avl_assert_insert (struct avl_table *, void *);
 void *avl_assert_delete (struct avl_table *, void *);
 
-#define avl_count(table) ((size_t) (table)->avl_count)
+/* #define avl_count(table) ((size_t) (table)->avl_count) */
+size_t avl_count(struct avl_table *);
+TravessiaModulo avl_trav_alloc();
+void avl_trav_free(TravessiaModulo it);
 
 /* Table traverser functions. */
 void avl_t_init (struct avl_traverser *, struct avl_table *);
