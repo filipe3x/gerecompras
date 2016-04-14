@@ -10,12 +10,11 @@
 #include <time.h>
 #include <stdbool.h>
 
-#define TAMANHO 10000000
+#define MAXLINHAS 10000000
 #define NRFILIAIS 3
 #define MAX_BUFFER_VENDAS 64
 #define MAX_BUFFER_CATALOGO 32
 
-#include "avl.c"
 #include "leitura_ficheiros.c"
 #include "menu.c"
 
