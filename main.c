@@ -15,6 +15,7 @@
 #define MAX_BUFFER_VENDAS 64
 #define MAX_BUFFER_CATALOGO 32
 
+#include "venda.h"
 #include "leitura_ficheiros.c"
 #include "menu.c"
 
