@@ -3,13 +3,14 @@
  *  *  * Laboratórios Informática III, Universidade do Minho, 2016
  *  *  */
 
+#include "venda.h"
+#include "avl.h"
+
 int compara_vendas_avl(const void *avl_a, const void *avl_b, void *avl_param);
 int compara_clientes_gestaoCliente(const void *avl_a, const void *avl_b, void *avl_param);
 int compara_produtos_gestaoProduto(const void *avl_a, const void *avl_b, void *avl_param);
 int compara_registo_produtos(const void *avl_a, const void *avl_b, void *avl_param);
 int compara_registo_clientes(const void *avl_a, const void *avl_b, void *avl_param);
-
-#include "venda.c"
 
 typedef struct vendas { // estrutura temporaria de teste
     Modulo filial[NRFILIAIS + 1];
@@ -218,9 +219,9 @@ int compara_registo_clientes(const void *avl_a, const void *avl_b, void *avl_par
 
 //funcao de teste
 int compara_vendas_avl(const void *avl_a, const void *avl_b, void *avl_param) {
-	VENDA venda_a = (Venda) avl_a;
-	VENDA venda_b = (Venda) avl_b;
-    return strcmp((char *) venda_a->codigoCliente, (char *) venda_b->codigoCliente);
+	VENDA venda_a = (VENDA) avl_a;
+	VENDA venda_b = (VENDA) avl_b;
+    return strcmp((char *) getCodigoCliente(venda_a), (char *) getCodigoCliente(venda_b));
 }
 
 //funcao de teste
@@ -253,7 +254,7 @@ void travessiaTesteVendas(Vendas vendas){
 	while((minhavenda = avl_t_next(trav)) && nr < 3){
 		VENDA clone = linhaVendaInit();
 		clonelinhaVenda(minhavenda, clone);
-		imprimirLinhaVenda(*clone);
+		imprimirLinhaVenda(clone);
 		free(clone);
 		nr++;
 	}
@@ -466,7 +467,7 @@ void travessiaTesteGestaoFilial(GestaoFilial modulo){
 }
 
 MODULO_GESTAO_FILIAIS inserirVendaModuloGestaoFiliais(MODULO_GESTAO_FILIAIS modulo, VENDA venda){
-	int f = calcula_indice_filial(venda);
+	int f = calculaIndicieFilial(venda);
 	/////antes de inserir verificar se produto/cliente existe no catalogo (aprender a usar .h primeiro)
 	inserirNoModuloClientes(modulo->filial[f],venda);
 	//inserirNoModuloProdutos(modulo->filial[f],venda);
