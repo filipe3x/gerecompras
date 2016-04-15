@@ -1,6 +1,11 @@
+#include "venda.h"
 #include "gestao_filiais.c"
 #include "catalogo_clientes.c"
 #include "faturacao.c"
+
+void verificarIntegradeFicheiro(String nomeFicheiro){
+	;
+}
 
 void abrirFicheiroVendas(String nomeFicheiro, MODULO_GESTAO_FILIAIS moduloGestaoFiliais, MODULO_FATURACAO moduloFaturacao){
 	const char *modoAbertura = "r";
@@ -9,11 +14,11 @@ void abrirFicheiroVendas(String nomeFicheiro, MODULO_GESTAO_FILIAIS moduloGestao
 	int i = 0;
 	String linhaLida = (String) malloc(128);
 	VENDA novaVenda  = linhaVendaInit(); //alocar espaco para novaVenda
-	StringVenda structStrVendas;
+	StringVenda structStrVendas = stringVendaInit();
 
 	while(fgets(linhaLida, MAX_BUFFER_VENDAS, ficheiroVendas) && i < MAXLINHAS){ //max 39 caract por linha
 		linhaLida[strcspn( linhaLida, "\r\n")] = 0; //apagar new lines de cada linha
-		lerLinhaVenda(linhaLida,&structStrVendas); //Inserir na estrutura de Strings temporariamente
+		lerLinhaVenda(linhaLida, structStrVendas); //Inserir na estrutura de Strings temporariamente
 		inserirLinhaVenda(novaVenda, structStrVendas); //Interpretar valores na estrutura temporaria structStrVendas e inserir valores na estrutura novaVenda  (as strings antigas sao aproveitadas)
 		// VENDA clone = linhaVendaInit(); //copia deep das estruturas contidas em novaVenda
 		// clonelinhaVenda(novaVenda,clone);
@@ -24,6 +29,7 @@ void abrirFicheiroVendas(String nomeFicheiro, MODULO_GESTAO_FILIAIS moduloGestao
 	}
 
 	fclose(ficheiroVendas);
+	freeStringVenda(structStrVendas);
 	free(novaVenda); // free novaVenda
 	free(linhaLida);
 	printf("Total linhas validadas: %d\n", moduloGestaoFiliais->totalVendas);
@@ -40,8 +46,8 @@ int gestaoFiliaisMain(){
 	// travessiaTesteGestaoFilial(moduloGestao->filial[f]);
 	// travessiaFaturacao(moduloFaturacao);
 
-	freeModuloGestaoFiliais(moduloGestao);
-	freeModuloFaturacao(moduloFaturacao);
+	// freeModuloGestaoFiliais(moduloGestao);
+	// freeModuloFaturacao(moduloFaturacao);
 
     return (EXIT_SUCCESS);
 }
@@ -72,6 +78,7 @@ int abrirFicheiroClientes(String nomeFicheiro){
     return(EXIT_SUCCESS);
 }
 
+/*
 int lerFicheiroVendas(){
 	Vendas vendas = filiaisInit();
 	avlFiliaisInit(vendas);
@@ -91,7 +98,7 @@ int lerFicheiroVendas(){
 		//Inserir na estrutura de Strings temporariamente
 		lerLinhaVenda(linhaLida,&structStrVendas);
 
-		//*INSERIR NA AVL
+		//INSERIR NA AVL
 		VENDA novaVenda  = linhaVendaInit(); //alocar espaco para nova entrada no modulo de dados
 		//Interpretar valores na estrutura temporaria structStrVendas e inserir valores na estrutura novaVenda
 		inserirLinhaVenda(novaVenda, structStrVendas);
@@ -111,5 +118,6 @@ int lerFicheiroVendas(){
 
     return (EXIT_SUCCESS);
 }
+*/
 
 
