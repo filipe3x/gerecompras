@@ -1,16 +1,32 @@
-typedef char** ListagemStrings;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdbool.h>
 
-typedef struct paginaResultados{
-    ListagemStrings resultados;
+#include "avl.h"
+#include "venda.h"
+#include "navegacao.h"
+#include "catalogo_clientes.h"
+
+// FALTA FAZER FUNCAO DE ORDENACAO
+
+struct paginaResultados{
+    Listagem resultados;
     int tamanhoLista;
-    int tamanhoCadaElemento; //em nr carateres
+    int tamanhoCadaElemento; //EM BYTES
+    int nrCampos;
     int indiceAtual; //so para insercoes
+    int tempos;
 
+    int* tamanhoCampos;// meter aqui um array com o tamanho de cada um dos campos
+    
     int nrPaginaAtual;
+    int nrPaginasTotal;
     int nrElementosPorPagina;
     int posicaoInicial;
     int posicaoFinal;
-} *PAGINA_RESULTADOS;
+};
 
 int getTamanhoLista(PAGINA_RESULTADOS pagina){
 	return pagina->tamanhoLista;
@@ -20,8 +36,8 @@ int getTamanhoCadaElemento(PAGINA_RESULTADOS pagina){
 	return pagina->tamanhoCadaElemento;
 }
 
-Codigo getnElemento(PAGINA_RESULTADOS pagina, int n){
-	return (String) (pagina->resultados + getTamanhoCadaElemento(pagina) * n);
+void* getnElemento(PAGINA_RESULTADOS pagina, int n){
+	return (void *) (pagina->resultados[n]); //da me o apontador da estrutura no indice n
 }
 
 int getIndiceAtual(PAGINA_RESULTADOS pagina){
@@ -77,7 +93,7 @@ int calcularIndiceInsercao(PAGINA_RESULTADOS pagina){
 
 PAGINA_RESULTADOS paginaResultadosInit(int tamanhoL, int tamanhoElemento){
 	PAGINA_RESULTADOS pagina = (PAGINA_RESULTADOS) malloc(sizeof(struct paginaResultados));
-	pagina->resultados = (ListagemStrings) malloc(tamanhoL * (tamanhoElemento + 1));
+	pagina->resultados = (Listagem) malloc(tamanhoL*sizeof( void* )); //array de apontadores para estruturas
 
 	pagina->tamanhoLista = tamanhoL;
 	pagina->tamanhoCadaElemento = tamanhoElemento;
@@ -108,34 +124,10 @@ void estadoPaginacao(PAGINA_RESULTADOS pagina){
 	printf("posicaoFinal %d\n", posicaoFinal);
 }
 
-Codigo inserirResultadoLista(PAGINA_RESULTADOS pagina, Codigo item){
-	Codigo cod = strncpy( getnElemento(pagina,getIndiceAtual(pagina)) , item , getTamanhoCadaElemento(pagina) + 1);
+void* inserirResultadoLista(PAGINA_RESULTADOS pagina, void* item){ //FAZER DEEP COPY - E FEITO FORA DESTA FUNCAO
+	pagina->resultados[getIndiceAtual(pagina)] = item;
 	incIndiceAtual(pagina);
-	return cod;
-}
-
-PAGINA_RESULTADOS travessiaClientesPorLetra(CatalogoClientes catalogo, char letra){
-    int i = calculaIndiceCliente(toupper(letra));
-    int totalResultados = catalogo->totalClientes[i];
-
-    TravessiaModulo trav = avl_trav_alloc();
-    avl_t_init(trav, catalogo->indice[i]);
-
-    CodigoCliente_st cliente = avl_t_next(trav);
-    PAGINA_RESULTADOS pagina = paginaResultadosInit(totalResultados,strlen(cliente));
-    inserirResultadoLista(pagina, cliente);
-
-    int n = 0;
-    // totalResultados = 5;
-    while((cliente = avl_t_next(trav)) && n < totalResultados){
-        inserirResultadoLista(pagina, cliente);
-        n++;
-    }
-
-    // printf("Total clientes começados por %c: %d\n", toupper(c), getTotalClientes(catalogo, i));
-    avl_trav_free(trav); //free
-
-    return pagina;
+	return item;
 }
 
 bool testeUltimaPagina(PAGINA_RESULTADOS pagina){
@@ -154,7 +146,7 @@ void calcularUltimaPag(PAGINA_RESULTADOS pagina){
 	int nrPagina = calcularNrPaginasInteiras(getIndiceAtual(pagina), getNrElementosPorPagina(pagina));
 	int nrElementosUltimaPag = calcularNrElementosUltimaPagina(getIndiceAtual(pagina), getNrElementosPorPagina(pagina));
 
-	if(nrElementosUltimaPag == 0)
+	if(nrElementosUltimaPag == 0) //?
 
 	setPaginaAtual(pagina, nrPagina);
 	setPosicaoInicial(pagina, nrPagina * getNrElementosPorPagina(pagina));
@@ -193,45 +185,26 @@ void posicoesInit(PAGINA_RESULTADOS pagina){
 	setPosicaoFinal(pagina, getPosicaoInicial(pagina) + elemPorPag - 1);
 }
 
-void imprimirElementos(PAGINA_RESULTADOS pagina){
+
+void imprimirElementos(PAGINA_RESULTADOS pagina, void (*funcaoImpressao)() ){
 	int i = getPosicaoInicial(pagina);
 	int fim = getPosicaoFinal(pagina);
 
-	Codigo codigo;
-
 	while( i  <= fim ){
-		codigo = getnElemento(pagina, i);
-		printf("Codigo: %s\n", codigo);
+		funcaoImpressao( getnElemento(pagina, i) ); //mandei o endereco da estrutura para fora
 		i++;
 	}
 }
 
-void percorrerPaginaResultados(PAGINA_RESULTADOS pagina, int nrPag, int elemPorPag){
+
+void percorrerPaginaResultados(PAGINA_RESULTADOS pagina, int nrPag, int elemPorPag, void (*funcaoImpressao)() ){
 	setNrElementosPorPagina(pagina, elemPorPag);
 	posicoesInit(pagina);
 
 	while(scanf("%d",&nrPag) != 0){
 		printf("\tTOTAL PAG: %d\n", calcularNrPaginasTotal(pagina));
 		estadoPaginacao(pagina);
-		imprimirElementos(pagina);
+		imprimirElementos(pagina, funcaoImpressao);
 		virarPagina(pagina);
 	}
-}
-
-void travessiaTesteClientes(CatalogoClientes catalogo){
-	char c = 'A';
-	// scanf("%c",&c);
-
-	PAGINA_RESULTADOS pagina = travessiaClientesPorLetra(catalogo, c);
-
-	percorrerPaginaResultados(pagina, 1, 10);
-
-    printf("Total clientes começados por %c: %d\n", toupper(c), getTotalClientes(catalogo, calculaIndiceCliente(c)));
-}
-
-void freeTravessiaCatalogoClientes(TravessiaModulo travessia){
-    if(travessia != NULL)
-        avl_trav_free(travessia);
-
-    free(travessia);
 }
