@@ -1,26 +1,12 @@
-typedef char* Codigo;
-typedef char* String;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
-typedef char* CodigoProduto_st;
-typedef double Preco_st;
-typedef int Quantidade_st;
-typedef int TipoVenda_st;
-typedef char* CodigoCliente_st;
-typedef int Mes_st;
-typedef int Filial_st;
+#include "venda.h"
+// #include "gestao_filiais.h" //para saber quantas filiais temos
 
-typedef struct stringLinhaVenda
-{
-	char *codigoProduto;
-	char *preco;
-	char *quantidade;
-	char *tipoVenda;
-	char *codigoCliente;
-	char *mes;
-	char *filial;
-} StringVenda;
-
-typedef struct linhaVenda
+struct linhaVenda
 {
 	CodigoProduto_st codigoProduto;
 	Preco_st preco;
@@ -29,14 +15,20 @@ typedef struct linhaVenda
 	CodigoCliente_st codigoCliente;
 	Mes_st mes;
 	Filial_st filial;
-} *VENDA;
+};
 
-typedef VENDA Venda;
+struct stringLinhaVenda
+{
+	char *codigoProduto;
+	char *preco;
+	char *quantidade;
+	char *tipoVenda;
+	char *codigoCliente;
+	char *mes;
+	char *filial;
+};
 
-#define VENDA_NORMAL 0
-#define VENDA_PROMOCIONAL 1
-
-const char* Mes[] = {"janeiro","fevereiro","marco","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"};
+const String Mes[] = {"janeiro","fevereiro","marco","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"};
 
 Codigo cloneCodigo(Codigo codigo){
 	int tamanho = strlen(codigo);
@@ -62,6 +54,14 @@ void freeLinhaVENDA(VENDA venda){
 		freeCodigo(venda->codigoCliente);
 		free(venda);
 	}
+}
+
+StringVenda stringVendaInit(){
+	return (StringVenda) malloc(sizeof(struct stringLinhaVenda));
+}
+
+void freeStringVenda(StringVenda StringVendaStruct){
+	free(StringVendaStruct);
 }
 
 CodigoProduto_st getCodigoProduto(VENDA venda){
@@ -120,7 +120,7 @@ void setFilial(VENDA venda, Filial_st filial){
 	venda->filial = filial;
 }
 
-Filial_st calcula_indice_filial(VENDA venda) {
+Filial_st calculaIndicieFilial(VENDA venda) {
 	return  getFilial(venda);
 }
 
@@ -135,7 +135,7 @@ VENDA clonelinhaVenda(VENDA origem, VENDA novaVenda){
 	return novaVenda;
 }
 
-static int lerLinhaVenda(char *linha, StringVenda *strings){
+StringVenda lerLinhaVenda(String linha, StringVenda strings){
 	char *contexto = linha;
 	strings->codigoProduto = strtok_r(linha, " ",&contexto);
 	strings->preco = strtok_r(NULL, " ",&contexto);
@@ -145,34 +145,34 @@ static int lerLinhaVenda(char *linha, StringVenda *strings){
 	strings->mes = strtok_r(NULL, " ",&contexto);
 	strings->filial = strtok_r(NULL, " ",&contexto);
 
-	if(strtok_r(NULL, " ",&contexto) == NULL) return 0;
-	else return -1;
+	if(strtok_r(NULL, " ",&contexto) == NULL) return strings;
+	else return NULL;
 }
 
-static int inserirLinhaVenda(VENDA structVenda, StringVenda strings){
-	structVenda->codigoProduto = (char*) strings.codigoProduto;
-	structVenda->preco = (double) strtod(strings.preco, NULL); //guardar como inteiro em centimos
+VENDA inserirLinhaVenda(VENDA structVenda, StringVenda strings){
+	structVenda->codigoProduto = (char*) strings->codigoProduto;
+	structVenda->preco = (double) strtod(strings->preco, NULL); //guardar como inteiro em centimos
 	//structVenda->preco = (double) atof(strings.preco); //guardar como inteiro em centimos
-	structVenda->quantidade = (int) strtol(strings.quantidade, (char **)NULL, 10);
-	structVenda->tipoVenda = (char) *(strings.tipoVenda) == 'P' ? 1 : 0;
-	structVenda->codigoCliente = (char*) strings.codigoCliente;
-	structVenda->mes = (int) strtol(strings.mes, (char **)NULL, 10) - 1;
-	structVenda->filial = (int) strtol(strings.filial, (char **)NULL, 10);
-	return 0;
+	structVenda->quantidade = (int) strtol(strings->quantidade, (char **)NULL, 10);
+	structVenda->tipoVenda = (char) *(strings->tipoVenda) == 'P' ? 1 : 0;
+	structVenda->codigoCliente = (char*) strings->codigoCliente;
+	structVenda->mes = (int) strtol(strings->mes, (char **)NULL, 10) - 1;
+	structVenda->filial = (int) strtol(strings->filial, (char **)NULL, 10);
+	return structVenda;
 }
 
 static char imprimirTipoVenda(int t){
 	return (t == VENDA_NORMAL ? 'N' : 'P');
 }
 
-static void imprimirLinhaVenda(struct linhaVenda structVenda){
-	printf("produto: %s\n",structVenda.codigoProduto);
-	printf("preco: %.2f\n",structVenda.preco);
-	printf("quantidade: %d\n",structVenda.quantidade);
-	printf("tipoVenda: %c\n",imprimirTipoVenda(structVenda.tipoVenda));
-	printf("cliente: %s\n",structVenda.codigoCliente);
-	printf("mes: %s\n",Mes[structVenda.mes]);
-	printf("filial: %d\n",structVenda.filial);
+void imprimirLinhaVenda(VENDA structVenda){
+	printf("produto: %s\n",getCodigoProduto(structVenda));
+	printf("preco: %.2f\n",getPreco(structVenda));
+	printf("quantidade: %d\n",getQuantidade(structVenda));
+	printf("tipoVenda: %c\n",imprimirTipoVenda(getTipoVenda(structVenda)));
+	printf("cliente: %s\n",getCodigoCliente(structVenda));
+	printf("mes: %s\n",Mes[getMes(structVenda)]);
+	printf("filial: %d\n",getFilial(structVenda));
 }
 
 ////
@@ -193,10 +193,9 @@ int verificaCodigoCliente(Codigo cliente){
 	return 0;
 }
 
-long verificaVenda(String venda){
-	if(strlen(venda) > 50) return 0;
-	long n = strtol(venda,NULL,10);
-	return n;
+int verificaVenda(String linhavenda){
+	if(strlen(linhavenda) > 50) return 0;
+	else return 1;
 }
 
 int verificaQuantidade(int n){
