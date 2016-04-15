@@ -64,4 +64,4 @@ int verificaMes( int );
 int verificaTipoCompra( char );
 int verificaVenda( String );
 
-#endif
+#endif /* _VENDA */
