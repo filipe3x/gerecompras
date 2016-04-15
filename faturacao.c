@@ -1,18 +1,22 @@
-typedef struct contas{
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "venda.h"
+#include "faturacao.h"
+
+struct contas{
 	Quantidade_st quantidadeTotal;
 	Preco_st totalFaturado;	
-} *Contas;
+};
 
-typedef struct faturacao{
+struct faturacao{
 	Quantidade_st quantidadeTotalNormal;
 	Quantidade_st quantidadeTotalPromocional;
 	Preco_st totalFaturadoNormal;
 	Preco_st totalFaturadoPromocional;
 
 	Contas filial[NRFILIAIS + 1][12][2];
-} *MODULO_FATURACAO;
-
-typedef double Resultados;
+};
 
 Quantidade_st getQuantidadeTotalNormal(MODULO_FATURACAO modulo){
 	return modulo->quantidadeTotalNormal;
@@ -145,7 +149,7 @@ void freeModuloFaturacao(MODULO_FATURACAO modulo){
 	free(modulo);
 }
 
-void inserirVendaModuloFacturacao(MODULO_FATURACAO modulo, Venda venda){
+void inserirVendaModuloFacturacao(MODULO_FATURACAO modulo, VENDA venda){
 	Filial_st f = getFilial(venda);
 	Mes_st mes = getMes(venda);
 	TipoVenda_st t = getTipoVenda(venda);
