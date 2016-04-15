@@ -1,3 +1,5 @@
+#include "avl.h"
+
 typedef struct catalogoClientes {
     int totalClientes[27];
     Modulo indice[27];
