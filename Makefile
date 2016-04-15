@@ -1,10 +1,19 @@
-CC=gcc
-CFLAGS=-I -Wall.
-DEPS = abrir_ficheiros.h
-OBJ = gerecompras.o abrir_ficheiros.o vendas.o 
+CC = gcc
+CFLAGS = -pedantic -Wall -g
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+objects = main.o venda.o avl.o catalogo_clientes.o faturacao.o navegacao.o
 
-gerecompras: $(OBJ)
-	gcc -o $@ $^ $(CFLAGS)
+gerecompras: $(objects)
+	$(CC) $(CFLAGS) -o gerecompras $(objects)
+
+run: gerecompras
+	./gerecompras
+
+recompile:
+	make clean
+	make
+
+.PHONY: clean
+clean :
+	rm -f gerecompras
+	rm -f $(objects)
