@@ -34,6 +34,7 @@ typedef struct gestaoCliente
 {
 	CodigoCliente_st codigoCliente;
 	Quantidade_st quantidadeTotal;
+	int nrProdutosDiferentes;
 	Registos mes[12][2]; //Registo produtos por cliente para cada mes e Tipo compra
 } *GestaoCliente;
 
@@ -41,6 +42,7 @@ typedef struct gestaoProduto
 {
 	CodigoProduto_st codigoProduto;
 	Quantidade_st quantidadeTotal;
+	int nrClientesTotal;
 	Registos mes[12][2]; //Registo clientes por produto para cada mes e Tipo compra
 } *GestaoProduto;
 
@@ -57,6 +59,14 @@ typedef struct registoCliente
 	Preco_st preco;
 	Quantidade_st quantidade;
 } *RegistoCliente;
+
+int getNrClientesTotal_gestaoProduto(GestaoProduto produto){
+	return produto->nrClientesTotal;
+}
+
+int getNrProdutosDiferentes_gestaoCliente(GestaoCliente cliente){
+	return cliente->nrProdutosDiferentes;
+}
 
 // Inicializadores e frees
 
@@ -138,10 +148,10 @@ void freeModuloGestaoFiliais(MODULO_GESTAO_FILIAIS modulo){
 }
 
 ////
-
 GestaoCliente gestaoClienteInit(){
 	GestaoCliente novoCliente = (GestaoCliente) malloc(sizeof (struct gestaoCliente));
 	novoCliente->quantidadeTotal = 0;
+	novoCliente->nrProdutosDiferentes = 0;
 
 	int m;
 	for(m = 0; m < 12; m++){
@@ -154,6 +164,7 @@ GestaoCliente gestaoClienteInit(){
 GestaoProduto gestaoProdutoInit(){
 	GestaoProduto novoProduto = (GestaoProduto) malloc(sizeof (struct gestaoProduto));
 	novoProduto->quantidadeTotal = 0;
+	novoProduto->nrClientesTotal = 0;
 
 	int m;
 	for(m = 0; m < 12; m++){
@@ -296,7 +307,6 @@ RegistoProduto inserirVendaNoRegistoProdutos(GestaoCliente cliente, VENDA venda)
 		p = inserirRegistoProduto(registo,novoRegGrelha);
 	}
 
-
 	return p;
 }
 
@@ -419,6 +429,7 @@ void travessiaTesteRegistoProdutos(GestaoCliente modulo){
 			}
 }
 
+/*
 void travessiaTesteRegistoClientes(GestaoProduto modulo){
 	//travessia
 	int i,j;
@@ -465,6 +476,7 @@ void travessiaTesteGestaoFilial(GestaoFilial modulo){
 		nr++;
 	}
 }
+*/
 
 MODULO_GESTAO_FILIAIS inserirVendaModuloGestaoFiliais(MODULO_GESTAO_FILIAIS modulo, VENDA venda){
 	int f = calculaIndicieFilial(venda);
