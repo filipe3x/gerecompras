@@ -8,6 +8,7 @@
 #include "venda.h"
 #include "navegacao.h"
 #include "catalogo_clientes.h"
+#include "queries.h"
 
 struct catalogoClientes {
     int totalClientes[27];
@@ -109,6 +110,13 @@ CodigoCliente_st inserirClienteCatalogo(CatalogoClientes catalogo, CodigoCliente
 	return c;
 }
 
+void freeTravessiaCatalogoClientes(TravessiaModulo travessia){
+    if(travessia != NULL)
+        avl_trav_free(travessia);
+
+    // free(travessia);
+}
+
 PAGINA_RESULTADOS travessiaClientesPorLetra(CatalogoClientes catalogo, char letra){
     int i = calculaIndiceCliente(toupper(letra));
     int totalResultados = getTotalClientesPorIndice(catalogo,i);
@@ -127,30 +135,25 @@ PAGINA_RESULTADOS travessiaClientesPorLetra(CatalogoClientes catalogo, char letr
         n++;
     }
 
-    printf("Total clientes começados por %c: %d\n", toupper(letra), getTotalClientesPorIndice(catalogo, i));
-    avl_trav_free(trav); //free
+    // printf("Total clientes começados por %c: %d\n", toupper(letra), getTotalClientesPorIndice(catalogo, i));
+    freeTravessiaCatalogoClientes(trav); //free
 
     return pagina;
 }
 
-void funcaoImpressao(void *s){
-    printf("| %s |\n", (char *) s); //aqui faco gato sapato da cena
-}
-
+/*
 void travessiaTesteClientes(CatalogoClientes catalogo){
     char c;
     scanf("%c",&c);
 
     PAGINA_RESULTADOS pagina = travessiaClientesPorLetra(catalogo, c);
 
+    ordenarResultadosLista(pagina, comparaCliente);
+
     percorrerPaginaResultados(pagina, 1, ELEM_POR_PAG, funcaoImpressao);
 
     printf("Total clientes começados por %c: %d\n", toupper(c), getTotalClientesPorIndice(catalogo, calculaIndiceCliente(c)));
 }
+*/
 
-void freeTravessiaCatalogoClientes(TravessiaModulo travessia){
-    if(travessia != NULL)
-        avl_trav_free(travessia);
 
-    free(travessia);
-}
