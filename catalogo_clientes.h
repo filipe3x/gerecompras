@@ -20,6 +20,8 @@ int calculaIndiceCliente( char );
 
 PAGINA_RESULTADOS travessiaClientesPorLetra( CatalogoClientes , char );
 
-void travessiaTesteClientes(CatalogoClientes catalogo);
+// void travessiaTesteClientes(CatalogoClientes catalogo);
+
+int comparaCliente(const void *cliente_a, const void *cliente_b, void *param);
 
 #endif /* CAT_CLIENTES */
