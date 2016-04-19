@@ -1,27 +1,27 @@
 #ifndef CAT_CLIENTES
 #define CAT_CLIENTES
-typedef struct catalogoClientes *CatalogoClientes;
+typedef struct catalogoClientes *CATALOGO_CLIENTES;
 
-CatalogoClientes catalogoClientesInit( void );
+CATALOGO_CLIENTES catalogoClientesInit( void );
 
-void freeCatalogoClientes( CatalogoClientes );
+void freeCatalogoClientes( CATALOGO_CLIENTES );
 
-CodigoCliente_st inserirClienteCatalogo( CatalogoClientes , CodigoCliente_st );
+CodigoCliente_st inserirClienteCatalogo( CATALOGO_CLIENTES , CodigoCliente_st );
 
-bool existeClienteCatalogo( CatalogoClientes , CodigoCliente_st );
+bool existeClienteCatalogo( CATALOGO_CLIENTES , CodigoCliente_st );
 
-int calcularTotalClientes( CatalogoClientes );
+int comparaClienteAlfabeticamente(const void *cliente_a, const void *cliente_b, void *param);
 
-Modulo getCatalogoClientesPorLetra( CatalogoClientes , char );
+int calcularTotalClientes( CATALOGO_CLIENTES );
 
-int getTotalClientesPorIndice( CatalogoClientes , int );
+Modulo getCatalogoClientesPorLetra( CATALOGO_CLIENTES , char );
+
+int getTotalClientesPorIndice( CATALOGO_CLIENTES , int );
 
 int calculaIndiceCliente( char );
 
-PAGINA_RESULTADOS travessiaClientesPorLetra( CatalogoClientes , char );
+PAGINA_RESULTADOS travessiaClientesPorLetra( CATALOGO_CLIENTES , char );
 
-// void travessiaTesteClientes(CatalogoClientes catalogo);
-
-int comparaCliente(const void *cliente_a, const void *cliente_b, void *param);
+PAGINA_RESULTADOS testarTravessiaClientes(CATALOGO_CLIENTES catalogo, int (*funcaoComparacao)(), void (*funcaoImpressao)() );
 
 #endif /* CAT_CLIENTES */
