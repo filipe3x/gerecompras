@@ -43,4 +43,12 @@ int getPosicaoAtual(PAGINA_RESULTADOS pagina);
 
 int getTamanhoLista(PAGINA_RESULTADOS pagina);
 
+PAGINA_RESULTADOS transporResultados(PAGINA_RESULTADOS pagina);
+
+void swapResultados(PAGINA_RESULTADOS pagina, Listagem novo);
+
+void* getnElemento(PAGINA_RESULTADOS pagina, int n);
+
+void* getMultiplosElementos(PAGINA_RESULTADOS pagina);
+
 #endif /* _NAVEGACAO_ */
