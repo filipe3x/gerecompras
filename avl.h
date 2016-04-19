@@ -73,7 +73,7 @@ void avl_assert_insert (struct avl_table *, void *);
 void *avl_assert_delete (struct avl_table *, void *);
 
 /* #define avl_count(table) ((size_t) (table)->avl_count) */
-size_t avl_count(struct avl_table *);
+size_t avl_node_count(struct avl_table *);
 TravessiaModulo avl_trav_alloc();
 void avl_trav_free(TravessiaModulo it);
 
