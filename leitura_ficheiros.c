@@ -1,11 +1,21 @@
-#include "venda.h"
-#include "gestao_filiais.c"
-#include "catalogo_clientes.c"
-#include "faturacao.c"
+/*
+ *  *  * Filipe Marques
+ *  *  * Laboratórios Informática III, Universidade do Minho, 2016
+ *  *  */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <time.h>
+#include <stdbool.h>
 
-void verificarIntegradeFicheiro(String nomeFicheiro){
-	;
-}
+#include "avl.h"
+#include "venda.h"
+#include "navegacao.h"
+#include "gestao_filiais.h"
+#include "catalogo_clientes.h"
+#include "faturacao.h"
+#include "leitura_ficheiros.h"
 
 void abrirFicheiroVendas(String nomeFicheiro, MODULO_GESTAO_FILIAIS moduloGestaoFiliais, MODULO_FATURACAO moduloFaturacao){
 	const char *modoAbertura = "r";
@@ -32,29 +42,10 @@ void abrirFicheiroVendas(String nomeFicheiro, MODULO_GESTAO_FILIAIS moduloGestao
 	freeStringVenda(structStrVendas);
 	free(novaVenda); // free novaVenda
 	free(linhaLida);
-	printf("Total linhas validadas: %d\n", moduloGestaoFiliais->totalVendas);
+	printf("Total linhas validadas: %d\n", getTotalVendasAdicionadas(moduloGestaoFiliais) );
 }
 
-int gestaoFiliaisMain(){
-	MODULO_GESTAO_FILIAIS moduloGestao = moduloGestaoFiliaisInit();
-	MODULO_FATURACAO moduloFaturacao = moduloFaturacaoInit();
-
-	abrirFicheiroVendas("Vendas_1M.txt", moduloGestao, moduloFaturacao);
-
-	// int f;
-	// scanf("%d",&f);
-	// travessiaTesteGestaoFilial(moduloGestao->filial[f]);
-	// travessiaFaturacao(moduloFaturacao);
-
-	// freeModuloGestaoFiliais(moduloGestao);
-	// freeModuloFaturacao(moduloFaturacao);
-
-    return (EXIT_SUCCESS);
-}
-
-int abrirFicheiroClientes(String nomeFicheiro){
-    CatalogoClientes catalogo = catalogoClientesInit();
-
+int abrirFicheiroClientes(CATALOGO_CLIENTES catalogo, String nomeFicheiro){
     String linhaLida = (String) malloc(64);
     FILE *ficheiroClientes = fopen(nomeFicheiro, "r"); //abrir ficheiro clientes
 
@@ -67,14 +58,12 @@ int abrirFicheiroClientes(String nomeFicheiro){
     free(linhaLida);
     fclose(ficheiroClientes);
 
+    printf("=====================================================\n");
     printf("linhas lidas: %d\n",nrlinhasLidas);
     printf("linhas validas: %d\n",calcularTotalClientes(catalogo));
-
-    travessiaTesteClientes(catalogo);
+    printf("=====================================================\n");
+    // travessiaTesteClientes(catalogo);
     // travessiaClientesPorLetra(catalogo,'A');
-
-    freeCatalogoClientes(catalogo);
-
     return(EXIT_SUCCESS);
 }
 

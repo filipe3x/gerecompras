@@ -1,7 +1,12 @@
+/*
+ *  *  * Filipe Marques
+ *  *  * Laboratórios Informática III, Universidade do Minho, 2016
+ *  *  */
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "venda.h"
+#include "navegacao.h"
 #include "faturacao.h"
 
 struct contas{
@@ -116,13 +121,13 @@ void freeContasNaGrelhaFaturacao(MODULO_FATURACAO modulo, Filial_st f, Mes_st me
 
 MODULO_FATURACAO moduloFaturacaoInit(){
 	MODULO_FATURACAO modulo = (MODULO_FATURACAO) malloc(sizeof(struct faturacao));
+	int f, mes;
 
 	setQuantidadeTotalNormal(modulo, 0);
 	setQuantidadeTotalPromocional(modulo, 0);
 	setTotalFaturadoNormal(modulo, 0);
 	setTotalFaturadoPromocional(modulo, 0);
 
-	int f, mes;
 	for (f = 0; f <= NRFILIAIS; f++)
 		for (mes = 0; mes < 12; mes++){
 			alocarContasNaGrelhaFaturacao(modulo,f,mes,VENDA_NORMAL);
@@ -194,12 +199,12 @@ Resultados consultaFaturacaoMesFilial(MODULO_FATURACAO modulo, Mes_st mes, Filia
 }
 
 void travessiaFaturacao(MODULO_FATURACAO modulo){
+	int f, mes;
 	printf("%d\n", getQuantidadeTotalNormal(modulo));
 	printf("%d\n", getQuantidadeTotalPromocional(modulo));
 	printf("%f\n", getTotalFaturadoNormal(modulo));
 	printf("%f\n", getTotalFaturadoPromocional(modulo));
 
-	int f, mes;
 	for (f = 0; f <= NRFILIAIS; f++){
 			printf("** Filial %d **\n", f);
 			for (mes = 0; mes < 12; mes++){
