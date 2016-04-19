@@ -21,6 +21,9 @@ typedef VENDA Venda;
 #define VENDA_NORMAL 0
 #define VENDA_PROMOCIONAL 1
 
+#define TAMANHO_COD_CLIENTE 5
+#define TAMANHO_COD_PRODUTO 6
+
 extern const String Mes[];
 
 Codigo cloneCodigo( Codigo );
@@ -62,6 +65,6 @@ int verificaPreco( double );
 int verificaFilial( int );
 int verificaMes( int );
 int verificaTipoCompra( char );
-int verificaVenda( String );
+int verificaVenda( StringVenda );
 
 #endif /* _VENDA */

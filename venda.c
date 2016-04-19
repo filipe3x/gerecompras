@@ -1,3 +1,7 @@
+/*
+ *  *  * Filipe Marques
+ *  *  * Laboratórios Informática III, Universidade do Minho, 2016
+ *  *  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -178,7 +182,7 @@ void imprimirLinhaVenda(VENDA structVenda){
 ////
 
 int verificaCodigoProduto(Codigo produto){
-	if(strlen(produto) != 6) return 0;
+	if(strlen(produto) != TAMANHO_COD_PRODUTO) return 0;
 	if(isalpha(produto[0]) && isalpha(produto[1]))
 		if(isdigit(produto[2]) && isdigit(produto[3]) && isdigit(produto[4]) && isdigit(produto[5]))
 			return 1;
@@ -186,16 +190,16 @@ int verificaCodigoProduto(Codigo produto){
 }
 
 int verificaCodigoCliente(Codigo cliente){
-	if(strlen(cliente) != 5) return 0;
+	if(strlen(cliente) != TAMANHO_COD_CLIENTE) return 0;
 	if(isalpha(cliente[0]))
 		if(isdigit(cliente[1]) && isdigit(cliente[2]) && isdigit(cliente[3]) && isdigit(cliente[4]))
 			return 1;
 	return 0;
 }
 
-int verificaVenda(String linhavenda){
-	if(strlen(linhavenda) > 50) return 0;
-	else return 1;
+int verificaVenda(StringVenda linhavenda){
+	return verificaCodigoProduto(linhavenda->codigoProduto) && 
+		verificaCodigoCliente(linhavenda->codigoCliente);
 }
 
 int verificaQuantidade(int n){
