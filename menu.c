@@ -224,3 +224,8 @@ void query11_imprimirRodape(){
 	printf("│ ╰───────┴──────────┴───────────────╯                   │\n");
 	printf("│<<[4]   <[5]  < # >  [6]>   [7]>> || Opção > ");
 }
+
+void ajuda(){
+	fprintf(stderr, "\tComando de execução:\n");
+	fprintf(stderr, "./gerecompras [ <ficheiro_clientes.txt> <ficheiro_produtos.txt> <ficheiro_vendas.txt> ]\n");
+}

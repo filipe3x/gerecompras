@@ -12,6 +12,7 @@ typedef enum estadoMenu {
 } EstadoMenu;
 
 void menu_principal();
+void ajuda();
 
 void query02_imprimirCabecalho();
 void query02_imprimirCabecalho_2(char letra, double tempo);
