@@ -3,7 +3,7 @@ CFLAGS = -pedantic -Wall -std=gnu89 -g
 #CFLAGS = -pedantic -ansi -Wall -g
 VALFLAGS = --tool=memcheck --leak-check=full
 
-objects = queries.o venda.o avl.o navegacao.o menu.o faturacao.o gestao_filiais.o catalogo_clientes.o leitura_ficheiros.o main.o
+objects = queries.o venda.o avl.o navegacao.o menu.o faturacao.o gestao_filiais.o catalogo_clientes.o catalogo_produtos.o leitura_ficheiros.o main.o
 
 gerecompras: $(objects)
 	$(CC) $(CFLAGS) -o gerecompras $(objects)
