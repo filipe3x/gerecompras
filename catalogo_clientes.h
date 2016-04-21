@@ -1,5 +1,6 @@
 #ifndef CAT_CLIENTES
 #define CAT_CLIENTES
+#include <stdbool.h>
 typedef struct catalogoClientes *CATALOGO_CLIENTES;
 
 CATALOGO_CLIENTES catalogoClientesInit( void );

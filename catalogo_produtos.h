@@ -1,5 +1,6 @@
 #ifndef CAT_PRODUTOS
 #define CAT_PRODUTOS
+#include <stdbool.h>
 typedef struct catalogoProdutos *CATALOGO_PRODUTOS;
 
 CATALOGO_PRODUTOS catalogoProdutosInit( void );
