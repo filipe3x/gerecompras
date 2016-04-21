@@ -26,9 +26,8 @@ int main(int argc, char const *argv[]){
 	MODULO_GESTAO_FILIAIS moduloGestao = moduloGestaoFiliaisInit();
 	MODULO_FATURACAO moduloFaturacao = moduloFaturacaoInit();
 
-	abrirFicheiroClientes("Clientes.txt", catalogoClientes);
-	abrirFicheiroProdutos("Produtos.txt", catalogoProdutos);
-	abrirFicheiroVendas("Vendas_1M.txt", moduloGestao, moduloFaturacao, catalogoProdutos, catalogoClientes);
+	argumentosMain(argc,argv);
+	abrirFicheirosInit(catalogoClientes,catalogoProdutos,moduloGestao,moduloFaturacao);
 
 	// query02_catalogoClientes(catalogoClientes);
 	// query02_catalogoProdutos(catalogoClientes);
@@ -38,7 +37,7 @@ int main(int argc, char const *argv[]){
 	// query03_quantidadeFaturacaoProduto_filial(moduloGestao, catalogoProdutos);
 	// query03_quantidadeFaturacaoProduto_global(moduloGestao, catalogoProdutos);
 
-	menu_principal();
+	if(STATUS!=EXIT_FAILURE)menu_principal();
 
 /*	printf("faturacao %f\n", calculaFaturacaoProduto_global(moduloGestao, "NR1091", VENDA_NORMAL) + 
 		calculaFaturacaoProduto_global(moduloGestao, "NR1091", VENDA_PROMOCIONAL));
@@ -58,15 +57,15 @@ int main(int argc, char const *argv[]){
 	// printf("%s\n", (char*) getnElemento(pagina, 4));
 	// printf("%s\n", (char*) getnElemento(pagina, getIndiceAtual(pagina)-1) );
 
-	PAGINA_RESULTADOS pagina = produtosMaisVendidos_global( moduloGestao, calcularTotalProdutos(catalogoProdutos));
-	printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, 0)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, 0)) );
-	printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, 1)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, 1)) );
-	printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, 2)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, 2)) );
-	printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, 3)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, 3)) );
-	printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, getIndiceAtual(pagina)-1)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, getIndiceAtual(pagina)-1)) );
+	// PAGINA_RESULTADOS pagina = produtosMaisVendidos_global( moduloGestao, calcularTotalProdutos(catalogoProdutos));
+	// printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, 0)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, 0)) );
+	// printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, 1)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, 1)) );
+	// printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, 2)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, 2)) );
+	// printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, 3)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, 3)) );
+	// printf("%s %d\n", (char*) getCodProduto_gestaoProduto(getnElemento(pagina, getIndiceAtual(pagina)-1)), getNrClientesTotal_gestaoProduto(getnElemento(pagina, getIndiceAtual(pagina)-1)) );
 
-	printf("%f\n",consultaFaturacaoIntervaloMeses(moduloFaturacao,0,11));
-	printf("%ld\n",(long) consultaQuantidadesIntervaloMeses(moduloFaturacao,0,11));
+	// printf("%f\n",consultaFaturacaoIntervaloMeses(moduloFaturacao,0,11));
+	// printf("%ld\n",(long) consultaQuantidadesIntervaloMeses(moduloFaturacao,0,11));
 
 	freeModuloGestaoFiliais(moduloGestao);
 	freeModuloFaturacao(moduloFaturacao);
