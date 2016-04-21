@@ -13,9 +13,9 @@
 #include "venda.h"
 #include "navegacao.h"
 #include "faturacao.h"
-#include "gestao_filiais.h"
 #include "catalogo_clientes.h"
 #include "catalogo_produtos.h"
+#include "gestao_filiais.h"
 #include "leitura_ficheiros.h"
 #include "queries.h"
 #include "menu.h"
@@ -40,8 +40,25 @@ int main(int argc, char const *argv[]){
 
 	menu_principal();
 
-	printf("faturacao %f\n", calculaFaturacaoProduto_global(moduloGestao, "NR1091", VENDA_NORMAL) + 
+/*	printf("faturacao %f\n", calculaFaturacaoProduto_global(moduloGestao, "NR1091", VENDA_NORMAL) + 
 		calculaFaturacaoProduto_global(moduloGestao, "NR1091", VENDA_PROMOCIONAL));
+	*/
+	// PAGINA_RESULTADOS pagina = listaClientesCompraramProduto(moduloGestao, "AF1184", 1);
+
+	// PAGINA_RESULTADOS pagina = produtosNinguemComprou_global( moduloGestao,  catalogoProdutos);
+	// printf("nr produtos ninguem comprou: %d\n", getIndiceAtual(pagina));
+
+	// PAGINA_RESULTADOS pagina = clientesNaoCompraram_global( moduloGestao,  catalogoClientes);
+	PAGINA_RESULTADOS pagina = clientesCompraramTodasFiliais(moduloGestao);
+	printf("%s\n", (char*) getnElemento(pagina, 0));
+	printf("%s\n", (char*) getnElemento(pagina, 1));
+	printf("%s\n", (char*) getnElemento(pagina, 2));
+	printf("%s\n", (char*) getnElemento(pagina, 3));
+	printf("%s\n", (char*) getnElemento(pagina, 4));
+	printf("%s\n", (char*) getnElemento(pagina, getIndiceAtual(pagina)-1) );
+
+	printf("%f\n",consultaFaturacaoIntervaloMeses(moduloFaturacao,0,11));
+	printf("%ld\n",(long) consultaQuantidadesIntervaloMeses(moduloFaturacao,0,11));
 
 	freeModuloGestaoFiliais(moduloGestao);
 	freeModuloFaturacao(moduloFaturacao);
