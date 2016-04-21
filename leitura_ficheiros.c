@@ -17,11 +17,101 @@
 #include "gestao_filiais.h"
 #include "faturacao.h"
 #include "leitura_ficheiros.h"
+#include "menu.h"
 
+CATALOGO_CLIENTES cat_Clientes;
+CATALOGO_PRODUTOS cat_Produtos;
+MODULO_GESTAO_FILIAIS mod_Gestao;
+MODULO_FATURACAO mod_Faturacao;
+
+String FICHEIRO_CLIENTES = "Clientes.txt";
+String FICHEIRO_PRODUTOS = "Produtos.txt";
+String FICHEIRO_VENDAS = "Vendas_1M.txt";
+
+const char** argumentos;
+int nrArg;
+int STATUS;
+
+static int abrirFicheiros();
+static void abrirFicheiroClientes(String nomeFicheiro);
+static void abrirFicheiroProdutos(String nomeFicheiro);
+static void abrirFicheiroVendas(String nomeFicheiro);
+static int verificaFicheiros(String ficheiro1, String ficheiro2, String ficheiro3);
 static int validaVenda(VENDA venda, CATALOGO_PRODUTOS catalogoProdutos, CATALOGO_CLIENTES catalogoClientes);
 
-void abrirFicheiroVendas(String nomeFicheiro, MODULO_GESTAO_FILIAIS moduloGestaoFiliais, 
-	MODULO_FATURACAO moduloFaturacao, CATALOGO_PRODUTOS catalogoProdutos, CATALOGO_CLIENTES catalogoClientes){
+int abrirFicheirosInit(CATALOGO_CLIENTES catalogoClientes, CATALOGO_PRODUTOS catalogoProdutos, 
+	MODULO_GESTAO_FILIAIS moduloGestaoFiliais, MODULO_FATURACAO moduloFaturacao){
+
+	cat_Clientes = catalogoClientes;
+	cat_Produtos = catalogoProdutos;
+	mod_Gestao = moduloGestaoFiliais;
+	mod_Faturacao = moduloFaturacao;
+
+	return STATUS = abrirFicheiros();
+}
+
+static int abrirFicheiros(){
+	String ficheiroClientes;
+	String ficheiroProdutos;
+	String ficheiroVendas;
+
+	if(nrArg == 1){
+		ficheiroClientes = FICHEIRO_CLIENTES;
+		ficheiroProdutos = FICHEIRO_PRODUTOS;
+		ficheiroVendas = FICHEIRO_VENDAS;
+	}else{
+		if(nrArg != 4){
+			ajuda();
+			return(EXIT_FAILURE);
+		}else{
+			ficheiroClientes = (String) argumentos[1];
+			ficheiroProdutos = (String) argumentos[2];
+			ficheiroVendas = (String) argumentos[3];
+		}
+	}
+
+	if(verificaFicheiros(ficheiroClientes, ficheiroProdutos, ficheiroVendas)){
+		abrirFicheiroClientes(ficheiroClientes);
+		abrirFicheiroProdutos(ficheiroProdutos);
+		abrirFicheiroVendas(ficheiroVendas);
+	}else{
+		if(nrArg == 1)
+			ajuda();
+		else
+			fprintf(stderr, "\tFicheiro(s) não existe(m) ou não existem permissões suficientes.\n");
+		return(EXIT_FAILURE);
+	}
+
+	return(EXIT_SUCCESS);
+}
+
+static int verificaFicheiros(String ficheiro1, String ficheiro2, String ficheiro3){
+	/*fopen won't work on "r" mode if file doesn't exist*/
+	int resultado = 1;
+	FILE *fp1 = fopen(ficheiro1,"r");
+	FILE *fp2 = fopen(ficheiro2,"r");
+	FILE *fp3 = fopen(ficheiro3,"r");
+
+	resultado = fp1 && fp2 && fp3;
+
+	fclose(fp1);
+	fclose(fp2);
+	fclose(fp3);
+
+	return resultado;
+}
+
+void argumentosMain(int argc, const char** argv){
+	nrArg = argc;
+	argumentos = argv;
+}
+
+static void abrirFicheiroVendas(String nomeFicheiro){
+
+	CATALOGO_CLIENTES catalogoClientes = cat_Clientes;
+	CATALOGO_PRODUTOS catalogoProdutos = cat_Produtos;
+	MODULO_GESTAO_FILIAIS moduloGestaoFiliais = mod_Gestao;
+	MODULO_FATURACAO moduloFaturacao = mod_Faturacao;
 
 	int i = 0;
 	clock_t tini, tfin;
@@ -56,7 +146,9 @@ void abrirFicheiroVendas(String nomeFicheiro, MODULO_GESTAO_FILIAIS moduloGestao
 	printf("Leitura feita em %.3f segundos.\n ", (double) (tfin - tini)/CLOCKS_PER_SEC);
 }
 
-void abrirFicheiroClientes(String nomeFicheiro, CATALOGO_CLIENTES catalogo){
+static void abrirFicheiroClientes(String nomeFicheiro){
+	CATALOGO_CLIENTES catalogo = cat_Clientes;
+
 	clock_t tini, tfin;
 	int nrlinhasLidas = 0;
 	String linhaLida = (String) malloc(64);
@@ -82,7 +174,9 @@ void abrirFicheiroClientes(String nomeFicheiro, CATALOGO_CLIENTES catalogo){
 
 }
 
-void abrirFicheiroProdutos(String nomeFicheiro, CATALOGO_PRODUTOS catalogo){
+static void abrirFicheiroProdutos(String nomeFicheiro){
+	CATALOGO_PRODUTOS catalogo = cat_Produtos;
+
 	clock_t tini, tfin;
 	int nrlinhasLidas = 0;
 	String linhaLida = (String) malloc(64);
