@@ -12,7 +12,6 @@
 #include "venda.h"
 #include "navegacao.h"
 #include "catalogo_produtos.h"
-#include "gestao_filiais.h"
 
 struct catalogoProdutos {
 	int totalProdutos[27];
@@ -20,13 +19,16 @@ struct catalogoProdutos {
 };
 
 static int calculaIndiceProduto(char l);
-static void freeTravessiaCatalogoProdutos(TravessiaModulo travessia);
 static void freeCodigoProduto(void *codigo, void *param);
 
 /* GET'S e SET's */
 
 Modulo getCatalogoProdutosPorLetra(CATALOGO_PRODUTOS catalogo, char l) {
 	return catalogo->indice[calculaIndiceProduto(l)];
+}
+
+Modulo getCatalogoProdutosPorIndice(CATALOGO_PRODUTOS catalogo, int i) {
+	return catalogo->indice[i];
 }
 
 int getTotalProdutos(CATALOGO_PRODUTOS catalogo, int ind){
@@ -166,7 +168,7 @@ PAGINA_RESULTADOS testarTravessiaProdutos(CATALOGO_PRODUTOS catalogo, int (*func
 	return pagina;
 }
 
-static void freeTravessiaCatalogoProdutos(TravessiaModulo travessia){
+void freeTravessiaCatalogoProdutos(TravessiaModulo travessia){
 	if(travessia != NULL)
 		avl_trav_free(travessia);
 }

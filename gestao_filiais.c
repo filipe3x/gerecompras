@@ -12,6 +12,8 @@
 #include "venda.h"
 #include "avl.h"
 #include "navegacao.h"
+#include "catalogo_produtos.h"
+#include "catalogo_clientes.h"
 #include "gestao_filiais.h"
 
 struct moduloGestaoFiliais {
@@ -56,8 +58,45 @@ struct registoCliente
 	Quantidade_st quantidade;
 };
 
+static GestaoFilial gestaoFilialInit();
+static void freeGestaoFilial(GestaoFilial filial);
+static GestaoCliente gestaoClienteInit();
+static GestaoProduto gestaoProdutoInit();
+static void freeGestaoCliente(void* cliente, void* param);
+static void freeGestaoProduto(void* produto, void* param);
+static void freeImediatoGestaoCliente(void* cliente, void* param);
+static void freeImediatoGestaoProduto(void* produto, void* param);
+static RegistoCliente registoClienteInit();
+static RegistoProduto registoProdutoInit();
+static void freeRegistoProduto(void *registo, void *param);
+static void freeRegistoCliente(void *registo, void *param);
+
+static int compara_clientes_gestaoCliente(const void *a, const void *b, void *param);
+static int compara_produtos_gestaoProduto(const void *a, const void *b, void *param);
+static int compara_registo_produtos(const void *a, const void *b, void *param);
+static int compara_registo_clientes(const void *a, const void *b, void *param);
+static int compara_registo_produtos_por_quantidade_decres(const void *a, const void *b, void *param);
+static int compara_registo_produtos_por_custo_decres(const void *a, const void *b, void *param);
+
+static GestaoCliente inserirNoModuloClientes(GestaoFilial modulo, VENDA venda);
+static GestaoProduto inserirNoModuloProdutos(GestaoFilial modulo, VENDA venda);
+static RegistoCliente inserirVendaNoRegistoClientes(GestaoProduto produto, VENDA venda);
+static RegistoProduto inserirVendaNoRegistoProdutos(GestaoCliente cliente, VENDA venda);
+
+/* GET'S E SET'S */
+
+
+
 int getTotalVendasAdicionadas(MODULO_GESTAO_FILIAIS modulo){
 	return modulo->totalVendasAdicionadas;
+}
+
+int getTotalClientesFilial(MODULO_GESTAO_FILIAIS modulo, Filial_st f){
+	return modulo->filial[f]->totalClientes;
+}
+
+int getTotalProdutosFilial(MODULO_GESTAO_FILIAIS modulo, Filial_st f){
+	return modulo->filial[f]->totalProdutos;
 }
 
 int getNrClientesTotal_gestaoProduto(GestaoProduto produto){
@@ -76,26 +115,37 @@ double getPreco_registoProduto(RegistoProduto produto){
 	return produto->preco;
 }
 
+int getQuantidade_registoCliente(RegistoCliente cliente){
+	return cliente->quantidade;
+}
+
+double getPreco_registoCliente(RegistoCliente cliente){
+	return cliente->preco;
+}
+
 void calculaTotalFaturado_registoProduto(RegistoProduto produto){
 	produto->preco = produto->preco * produto->quantidade;
+}
+
+void calculaTotalGasto_registoCliente(RegistoCliente cliente){
+	cliente->preco = cliente->preco * cliente->quantidade;
 }
 
 String getCodProduto_registoProduto(RegistoProduto produto){
 	return produto->codigoProduto;
 }
 
-// Inicializadores e frees
-
-GestaoFilial gestaoFilialInit(){
-	GestaoFilial filial = (GestaoFilial) malloc(sizeof(struct gestaoFilial));
-
-	filial->totalClientes = 0;
-	filial->totalProdutos = 0;
-	filial->clientes = avl_create(compara_clientes_gestaoCliente, NULL, NULL); 
-	filial->produtos = avl_create(compara_produtos_gestaoProduto, NULL, NULL);
-
-	return filial;
+String getCodCliente_registoCliente(RegistoCliente cliente){
+	return cliente->codigoCliente;
 }
+
+static void incTotalVendasAdicionadas(MODULO_GESTAO_FILIAIS modulo){
+	modulo->totalVendasAdicionadas++;
+}
+
+/* INICIALIZADORES E FREES */
+
+/* Modulo principal */
 
 MODULO_GESTAO_FILIAIS moduloGestaoFiliaisInit(){
 	MODULO_GESTAO_FILIAIS modulo = (MODULO_GESTAO_FILIAIS) malloc(sizeof(struct moduloGestaoFiliais));
@@ -108,17 +158,50 @@ MODULO_GESTAO_FILIAIS moduloGestaoFiliaisInit(){
 	return modulo;
 }
 
-void freeRegistoProduto(void *registo, void *param){
-	RegistoProduto registoProduto = (RegistoProduto) registo;
-	freeCodigo(registoProduto->codigoProduto);
-	free(registo);
+void freeModuloGestaoFiliais(MODULO_GESTAO_FILIAIS modulo){
+	int f;
+	for(f = 0; f <= NRFILIAIS; f++)
+		freeGestaoFilial(modulo->filial[f]);
+
+	free(modulo);
 }
 
-void freeRegistoClientes(void *codigo, void *param){
-	free((RegistoCliente) codigo);
+/* Uma filial */
+
+static GestaoFilial gestaoFilialInit(){
+	GestaoFilial filial = (GestaoFilial) malloc(sizeof(struct gestaoFilial));
+
+	filial->totalClientes = 0;
+	filial->totalProdutos = 0;
+	filial->clientes = avl_create(compara_clientes_gestaoCliente, NULL, NULL); 
+	filial->produtos = avl_create(compara_produtos_gestaoProduto, NULL, NULL);
+
+	return filial;
 }
 
-void freeGestaoCliente(void* cliente, void* param){
+static void freeGestaoFilial(GestaoFilial filial){
+	avl_destroy(filial->clientes,freeGestaoCliente);
+	avl_destroy(filial->produtos,freeGestaoProduto);
+	free(filial);
+}
+
+/* Um cliente */
+
+static GestaoCliente gestaoClienteInit(){
+	GestaoCliente novoCliente = (GestaoCliente) malloc(sizeof (struct gestaoCliente));
+	int m;
+
+	for(m = 0; m < 12; m++){
+		novoCliente->mes[m][VENDA_NORMAL] = NULL; //apontadores para avl
+		novoCliente->mes[m][VENDA_PROMOCIONAL] = NULL; //apontadores para avl
+	}
+
+	novoCliente->quantidadeTotal = 0;
+	novoCliente->nrProdutosDiferentes = 0;
+	return novoCliente;
+}
+
+static void freeGestaoCliente(void* cliente, void* param){
 	GestaoCliente gestaocliente = (GestaoCliente) cliente;
 
 	int m;
@@ -133,47 +216,15 @@ void freeGestaoCliente(void* cliente, void* param){
 	free((GestaoCliente) cliente);
 }
 
-void freeImediatoGestaoCliente(void* cliente, void* param){
+static void freeImediatoGestaoCliente(void* cliente, void* param){
 	GestaoCliente gestaocliente = (GestaoCliente) cliente;
 	freeCodigo(gestaocliente->codigoCliente);
 	free((GestaoCliente) cliente);
 }
 
-void freeGestaoProduto(void* produto, void* param){
-	free((GestaoProduto) produto);
-}
+/* Um produto */
 
-void freeGestaoFilial(GestaoFilial filial){
-	avl_destroy(filial->clientes,freeGestaoCliente);
-	avl_destroy(filial->produtos,freeGestaoProduto);
-	free(filial);
-}
-
-void freeModuloGestaoFiliais(MODULO_GESTAO_FILIAIS modulo){
-	int f;
-	for(f = 0; f <= NRFILIAIS; f++)
-		freeGestaoFilial(modulo->filial[f]);
-
-	free(modulo);
-}
-
-////
-
-GestaoCliente gestaoClienteInit(){
-	GestaoCliente novoCliente = (GestaoCliente) malloc(sizeof (struct gestaoCliente));
-	int m;
-
-	for(m = 0; m < 12; m++){
-		novoCliente->mes[m][VENDA_NORMAL] = NULL; //apontadores para avl
-		novoCliente->mes[m][VENDA_PROMOCIONAL] = NULL; //apontadores para avl
-	}
-
-	novoCliente->quantidadeTotal = 0;
-	novoCliente->nrProdutosDiferentes = 0;
-	return novoCliente;
-}
-
-GestaoProduto gestaoProdutoInit(){
+static GestaoProduto gestaoProdutoInit(){
 	GestaoProduto novoProduto = (GestaoProduto) malloc(sizeof (struct gestaoProduto));
 	int m;
 
@@ -187,141 +238,111 @@ GestaoProduto gestaoProdutoInit(){
 	return novoProduto;
 }
 
-void freeModuloClientes_ModuloProdutos(MODULO_GESTAO_FILIAIS modulo){
-	int f;
-	for(f = 0; f <= NRFILIAIS; f++){
-		avl_destroy(modulo->filial[f]->clientes, freeGestaoCliente);
-		avl_destroy(modulo->filial[f]->produtos, freeGestaoProduto);
+static void freeGestaoProduto(void* produto, void* param){
+	GestaoProduto gestaoproduto = (GestaoProduto) produto;
+
+	int m;
+	for(m = 0; m < 12; m++){
+		if(gestaoproduto->mes[m][VENDA_NORMAL] != NULL)
+			avl_destroy(gestaoproduto->mes[m][VENDA_NORMAL], freeRegistoCliente);
+		if(gestaoproduto->mes[m][VENDA_PROMOCIONAL] != NULL)
+			avl_destroy(gestaoproduto->mes[m][VENDA_PROMOCIONAL], freeRegistoCliente);
 	}
+
+	freeCodigo(gestaoproduto->codigoProduto);
+	free((GestaoProduto) produto);
 }
 
-RegistoCliente registoClienteInit(){
+static void freeImediatoGestaoProduto(void* produto, void* param){
+	GestaoProduto gestaoproduto = (GestaoProduto) produto;
+	freeCodigo(gestaoproduto->codigoProduto);
+	free((GestaoProduto) produto);
+}
+
+/* Um registo */
+
+static RegistoCliente registoClienteInit(){
 	RegistoCliente c = (RegistoCliente) malloc(sizeof (struct registoCliente));
 	return c;
 }
 
-RegistoProduto registoProdutoInit(){
+static RegistoProduto registoProdutoInit(){
 	RegistoProduto p = (RegistoProduto) malloc(sizeof (struct registoProduto));
 	return p;
 }
 
-void freeRegistosProdutosNoGestaoCliente(GestaoCliente cliente, Mes_st mes, TipoVenda_st tipo){
-	avl_destroy(cliente->mes[mes][tipo], freeRegistoProduto); //CORRIGIR ISTO
-	cliente->mes[mes][tipo] = NULL;
+static void freeRegistoProduto(void *registo, void *param){
+	RegistoProduto registoProduto = (RegistoProduto) registo;
+	freeCodigo(registoProduto->codigoProduto);
+	free(registo);
 }
 
-void freeRegistosClientesNoGestaoProduto(GestaoProduto produto, Mes_st mes, TipoVenda_st tipo){
-	avl_destroy(produto->mes[mes][tipo], freeRegistoClientes);
-	produto->mes[mes][tipo] = NULL;
+static void freeRegistoCliente(void *registo, void *param){
+	RegistoCliente registoCliente = (RegistoCliente) registo;
+	freeCodigo(registoCliente->codigoCliente);
+	free(registo);
 }
 
-////
+/* COMPARADORES DE ESTRUTURAS */
 
-int compara_clientes_gestaoCliente(const void *a, const void *b, void *param) {
+static int compara_clientes_gestaoCliente(const void *a, const void *b, void *param) {
 	GestaoCliente cliente_a = (GestaoCliente) a;
 	GestaoCliente cliente_b = (GestaoCliente) b;
 	return strcmp((char *) cliente_a->codigoCliente, (char *) cliente_b->codigoCliente);
 }
 
-int compara_produtos_gestaoProduto(const void *a, const void *b, void *param) {
+static int compara_produtos_gestaoProduto(const void *a, const void *b, void *param) {
 	GestaoProduto produto_a = (GestaoProduto) a;
 	GestaoProduto produto_b = (GestaoProduto) b;
 	return strcmp((char *) produto_a->codigoProduto, (char *) produto_b->codigoProduto);
 }
 
-int compara_registo_produtos(const void *a, const void *b, void *param) {
+static int compara_registo_produtos(const void *a, const void *b, void *param) {
 	RegistoProduto produto_a = (RegistoProduto) a;
 	RegistoProduto produto_b = (RegistoProduto) b;
 	return strcmp((char *) produto_a->codigoProduto, (char *) produto_b->codigoProduto);
 }
 
-int compara_registo_clientes(const void *a, const void *b, void *param) {
+static int compara_registo_clientes(const void *a, const void *b, void *param) {
 	RegistoCliente cliente_a = (RegistoCliente) a;
 	RegistoCliente cliente_b = (RegistoCliente) b;
 	return strcmp((char *) cliente_a->codigoCliente, (char *) cliente_b->codigoCliente);
 }
 
-// Modulo Registo de produtos
-
-RegistoProduto inserirRegistoProduto(RegistoProduto produto, Registos registos){
-	RegistoProduto p = (RegistoProduto) avl_insert(registos, produto);
-	if(p != NULL) { //se produto ja existe
-		freeRegistoProduto(produto, NULL); //nao preciso de inserir produto
-		p->quantidade += produto->quantidade; //basta actualizar quantidades
-	}
-	return p;
+/* para o quicksort */
+static int compara_registo_produtos_por_quantidade_decres(const void *a, const void *b, void *param) {
+	RegistoProduto produto_a = (RegistoProduto) a;
+	RegistoProduto produto_b = (RegistoProduto) b;
+	return produto_b->quantidade - produto_a->quantidade;
 }
 
-RegistoProduto cloneVendaParaRegistoProduto(VENDA venda, RegistoProduto registo){
-	registo->codigoProduto = cloneCodigo(getCodigoProduto(venda));
-	registo->preco = getPreco(venda);
-	registo->quantidade = getQuantidade(venda);
-	return registo;
+static int compara_registo_produtos_por_custo_decres(const void *a, const void *b, void *param) {
+	RegistoProduto produto_a = (RegistoProduto) a;
+	RegistoProduto produto_b = (RegistoProduto) b;
+	return (int) (produto_b->preco - produto_a->preco);
 }
 
-RegistoProduto cloneRegistoProduto(RegistoProduto registo){
-	RegistoProduto p = registoProdutoInit();
+/* INSERCOES */
 
-	p->codigoProduto = cloneCodigo(registo->codigoProduto);
-	p->preco = registo->preco;
-	p->quantidade = registo->quantidade;
-	return p;
+/* No modulo principal */
+
+MODULO_GESTAO_FILIAIS inserirVendaModuloGestaoFiliais(MODULO_GESTAO_FILIAIS modulo, VENDA venda){
+	int f = calculaIndicieFilial(venda);
+	inserirNoModuloClientes(modulo->filial[f],venda);
+	inserirNoModuloProdutos(modulo->filial[f],venda);
+	incTotalVendasAdicionadas(modulo);
+	return modulo;
 }
 
-RegistoProduto inserirVendaNoRegistoProdutos(GestaoCliente cliente, VENDA venda){
-	RegistoProduto p;
-	Mes_st mes = getMes(venda);
-	TipoVenda_st tipo = getTipoVenda(venda);
-	Registos regGrelha = cliente->mes[mes][tipo];
+/* Gestao de clientes */
 
-	RegistoProduto registo = registoProdutoInit();
-	cloneVendaParaRegistoProduto(venda,registo); 
-
-	// criar estrutura de registos no sitio certo
-	if(regGrelha != NULL){ //ja existe estrutura criada na grelha
-		p = inserirRegistoProduto(registo,regGrelha);
-	}else{ //ainda nao existe estrutura
-		Registos novoRegGrelha = avl_create(compara_registo_produtos, NULL, NULL);
-		cliente->mes[mes][tipo] = novoRegGrelha;
-		p = inserirRegistoProduto(registo,novoRegGrelha);
-	}
-
-	return p;
-}
-
-// Modulo Registo de clientes
-
-RegistoCliente inserirRegistoCliente(RegistoCliente cliente, Registos registos){
-	RegistoCliente p = (RegistoCliente) avl_insert(registos, cliente);
-	if(p != NULL) p->quantidade += cliente->quantidade; //se cliente ja existe, actualizar quantidades
-	return p;
-}
-
-RegistoCliente cloneVendaParaRegistoCliente(VENDA venda, RegistoCliente registo){
-	registo->codigoCliente = cloneCodigo(getCodigoCliente(venda));
-	registo->codigoCliente = getCodigoCliente(venda);
-	registo->preco = getPreco(venda);
-	registo->quantidade = getQuantidade(venda);
-	return registo;
-}
-
-RegistoCliente inserirVendaNoRegistoClientes(VENDA venda, Registos registos){
-	RegistoCliente p;
-	RegistoCliente registo = registoClienteInit(); //alocar memoria
-	cloneVendaParaRegistoCliente(venda,registo); 
-	p = inserirRegistoCliente(registo,registos);
-	return p;
-}
-
-// Modulo Gestao de clientes
-
-GestaoCliente novoGestaoCliente(CodigoCliente_st codigo){
+static GestaoCliente novoGestaoCliente(CodigoCliente_st codigo){
 	GestaoCliente novo = gestaoClienteInit(); //alocar espaco para cliente com grelha tudo a NULL
 	novo->codigoCliente = cloneCodigo(codigo); //copia deep do codigo cliente
 	return novo;
 }
 
-GestaoCliente inserirNoModuloClientes(GestaoFilial modulo, VENDA venda){
+static GestaoCliente inserirNoModuloClientes(GestaoFilial modulo, VENDA venda){
 	//inicializar GestaoCliente
 	GestaoCliente novoCliente = novoGestaoCliente(getCodigoCliente(venda));
 	//vamos tentar inserir
@@ -340,51 +361,643 @@ GestaoCliente inserirNoModuloClientes(GestaoFilial modulo, VENDA venda){
 	}
 }
 
-// Modulo Gestao de produtos
+/* Gestao de produtos */
 
-GestaoProduto novoGestaoProduto(CodigoProduto_st codigo){
+static GestaoProduto novoGestaoProduto(CodigoProduto_st codigo){
 	GestaoProduto novo = gestaoProdutoInit(); //alocar espaco para produto com grelha tudo a NULL
 	novo->codigoProduto = cloneCodigo(codigo); //copia deep do codigo produto
 	return novo;
 }
 
-Modulo alocarRegistosClientesNoGestaoProduto(GestaoProduto produto, Mes_st mes, TipoVenda_st tipo){
-	Modulo modulo = avl_create(compara_registo_clientes, NULL, NULL);
-	produto->mes[mes][tipo] = modulo;
-	return modulo;
-}
-
-GestaoProduto inserirNoModuloProdutos(GestaoFilial modulo, VENDA venda){
+static GestaoProduto inserirNoModuloProdutos(GestaoFilial modulo, VENDA venda){
+	//inicializar GestaoProduto
 	GestaoProduto novoProduto = novoGestaoProduto(getCodigoProduto(venda));
-	//vamos assumir que produto ainda nao existe
-	int mes = getMes(venda);
-	int tipo = getTipoVenda(venda);
-	Registos registos = (Registos) alocarRegistosClientesNoGestaoProduto(novoProduto,mes,tipo); //alocar modulo registos na grelha
-	RegistoCliente cliente = inserirVendaNoRegistoClientes(venda, registos);
+	//vamos tentar inserir
 	GestaoProduto c = (GestaoProduto) avl_insert(modulo->produtos, novoProduto); //avl_insert retorna valor do endereco na arvore do item duplicado, retorna NULL caso sucesso
 
-	if(c == NULL) {
+	if(c == NULL) { //produto ainda nao existia -- pouco eficiente, so em 20 000 / 1M de vezes vai cair aqui
 		novoProduto->quantidadeTotal += getQuantidade(venda);
 		modulo->totalProdutos++;
+		inserirVendaNoRegistoClientes(novoProduto, venda);		
 		return novoProduto; //insercao com sucesso
 	}else{ //produto ja existe
-		Registos entrada;
-		freeRegistosClientesNoGestaoProduto(novoProduto,mes,tipo); //apagar sub-estrutura criada dentro do modulo Gestao Produto
-		freeRegistoClientes(cliente,NULL); //apagar cliente
-		freeGestaoProduto(novoProduto,NULL); //apagar produto inutilmente criado
-		entrada = (Registos) c->mes[mes][tipo];
-		if(entrada == NULL){ //e ainda nao ha entradas na grelha
-			registos = (Registos) alocarRegistosClientesNoGestaoProduto(c,mes,tipo);
-			c->quantidadeTotal += getQuantidade(venda);
-			inserirVendaNoRegistoClientes(venda, registos);
-		}else{ //ja existe entrada na grelha, por isso basta adicionar registo
-			c->quantidadeTotal += getQuantidade(venda);
-			inserirVendaNoRegistoClientes(venda, entrada);
-		}
-		return c;
+		freeImediatoGestaoProduto(novoProduto, NULL); //apagar produto inutilmente criado -- esta operacao vai ser feita muitas vezes
+		c->quantidadeTotal += getQuantidade(venda);
+		inserirVendaNoRegistoClientes(c, venda);
+		return c; //nao foi inserido nenhum produto, so a grelha foi actualizada
 	}
 }
 
+/* Registo de clientes */
+
+static RegistoCliente inserirRegistoCliente(RegistoCliente cliente, Registos registos){
+	RegistoCliente p = (RegistoCliente) avl_insert(registos, cliente);
+	if(p != NULL) { //se cliente ja existe
+		freeRegistoCliente(cliente, NULL); //nao preciso de inserir cliente
+		p->quantidade += cliente->quantidade; //basta actualizar quantidades
+	}
+	return p;
+}
+
+static RegistoCliente cloneVendaParaRegistoCliente(VENDA venda, RegistoCliente registo){
+	registo->codigoCliente = cloneCodigo(getCodigoCliente(venda));
+	registo->preco = getPreco(venda);
+	registo->quantidade = getQuantidade(venda);
+	return registo;
+}
+
+// NAO APAGAR POR ENQUANTO
+// static RegistoCliente cloneRegistoCliente(RegistoCliente registo){
+// 	RegistoCliente p = registoClienteInit();
+
+// 	p->codigoCliente = cloneCodigo(registo->codigoCliente);
+// 	p->preco = registo->preco;
+// 	p->quantidade = registo->quantidade;
+// 	return p;
+// }
+
+static RegistoCliente inserirVendaNoRegistoClientes(GestaoProduto produto, VENDA venda){
+	RegistoCliente p;
+	Mes_st mes = getMes(venda);
+	TipoVenda_st tipo = getTipoVenda(venda);
+	Registos regGrelha = produto->mes[mes][tipo];
+
+	RegistoCliente registo = registoClienteInit();
+	cloneVendaParaRegistoCliente(venda,registo); 
+
+	// criar estrutura de registos no sitio certo
+	if(regGrelha != NULL){ //ja existe estrutura criada na grelha
+		p = inserirRegistoCliente(registo,regGrelha);
+	}else{ //ainda nao existe estrutura
+		Registos novoRegGrelha = avl_create(compara_registo_clientes, NULL, NULL);
+		produto->mes[mes][tipo] = novoRegGrelha;
+		p = inserirRegistoCliente(registo,novoRegGrelha);
+	}
+
+	if(p == NULL) produto->nrClientesTotal++;
+	return p;
+}
+
+/* Registo de produtos */
+
+static RegistoProduto inserirRegistoProduto(RegistoProduto produto, Registos registos){
+	RegistoProduto p = (RegistoProduto) avl_insert(registos, produto);
+	if(p != NULL) { //se produto ja existe
+		freeRegistoProduto(produto, NULL); //nao preciso de inserir produto
+		p->quantidade += produto->quantidade; //basta actualizar quantidades
+	}
+	return p;
+}
+
+static RegistoProduto cloneVendaParaRegistoProduto(VENDA venda, RegistoProduto registo){
+	registo->codigoProduto = cloneCodigo(getCodigoProduto(venda));
+	registo->preco = getPreco(venda);
+	registo->quantidade = getQuantidade(venda);
+	return registo;
+}
+
+static RegistoProduto cloneRegistoProduto(RegistoProduto registo){
+	RegistoProduto p = registoProdutoInit();
+
+	p->codigoProduto = cloneCodigo(registo->codigoProduto);
+	p->preco = registo->preco;
+	p->quantidade = registo->quantidade;
+	return p;
+}
+
+static RegistoProduto inserirVendaNoRegistoProdutos(GestaoCliente cliente, VENDA venda){
+	RegistoProduto p;
+	Mes_st mes = getMes(venda);
+	TipoVenda_st tipo = getTipoVenda(venda);
+	Registos regGrelha = cliente->mes[mes][tipo];
+
+	RegistoProduto registo = registoProdutoInit();
+	cloneVendaParaRegistoProduto(venda,registo); 
+
+	// criar estrutura de registos no sitio certo
+	if(regGrelha != NULL){ //ja existe estrutura criada na grelha
+		p = inserirRegistoProduto(registo,regGrelha);
+	}else{ //ainda nao existe estrutura
+		Registos novoRegGrelha = avl_create(compara_registo_produtos, NULL, NULL);
+		cliente->mes[mes][tipo] = novoRegGrelha;
+		p = inserirRegistoProduto(registo,novoRegGrelha);
+	}
+
+	if(p == NULL) cliente->nrProdutosDiferentes++;
+	return p;
+}
+
+/* CONSULTAS */
+
+GestaoCliente clienteFezAlgumaCompra_filial(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo, Filial_st filial){
+	GestaoCliente cliente_aux = novoGestaoCliente(codigo);
+	GestaoCliente res = (GestaoCliente) avl_find(modulo->filial[filial]->clientes, cliente_aux);
+	freeImediatoGestaoCliente(cliente_aux,NULL);
+	return res;
+}
+
+GestaoProduto produtoFoiVendido_filial(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, Filial_st filial){
+	GestaoProduto produto_aux = novoGestaoProduto(codigo);
+	GestaoProduto res = (GestaoProduto) avl_find(modulo->filial[filial]->produtos, produto_aux);
+	freeImediatoGestaoProduto(produto_aux,NULL);
+	return res;
+}
+
+GestaoCliente clienteFezAlgumaCompra_global(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo){
+	int f;
+	GestaoCliente cliente = NULL;
+	for(f = 0; f <= NRFILIAIS && !cliente; f++)
+		cliente = clienteFezAlgumaCompra_filial(modulo, codigo, f);
+	return cliente;
+}
+
+GestaoProduto produtoFoiVendido_global(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo){
+	int f;
+	GestaoProduto produto = NULL;
+	for(f = 0; f <= NRFILIAIS && !produto; f++)
+		produto = produtoFoiVendido_filial(modulo, codigo, f);
+	return produto;
+}
+
+GestaoCliente encontrarCliente(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo, Filial_st filial){
+	return 	clienteFezAlgumaCompra_filial(modulo, codigo, filial);
+}
+
+GestaoProduto encontrarProduto(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, Filial_st filial){
+	return 	produtoFoiVendido_filial(modulo, codigo, filial);
+}
+
+Registos verificaClienteFezComprasNumMes(GestaoCliente cliente, Mes_st mes, TipoVenda_st tipo){
+	return ( cliente->mes[mes][tipo] );
+}
+
+Registos verificaProdutoFoiVendidoNumMes(GestaoProduto produto, Mes_st mes, TipoVenda_st tipo){
+	return ( produto->mes[mes][tipo] );
+}
+
+Quantidade_st calculaQuantidadeTotalVendida_RegistoProdutos(Registos registos){
+	Quantidade_st quantidade_compras = 0;
+	RegistoProduto produto;
+
+	TravessiaModulo trav = avl_trav_alloc();
+	avl_t_init(trav, registos);
+	produto = (RegistoProduto) avl_t_next(trav);
+
+	while(produto){
+		quantidade_compras += produto->quantidade;
+		produto = avl_t_next(trav);
+	}
+
+	avl_trav_free(trav);
+	return quantidade_compras;
+}
+
+Preco_st faturacaoTotal_RegistoProdutos(Registos registos){
+	Preco_st faturacao = 0;
+	RegistoProduto produto;
+
+	TravessiaModulo trav = avl_trav_alloc();
+	avl_t_init(trav, registos);
+	produto = (RegistoProduto) avl_t_next(trav);
+
+	while(produto){
+		faturacao += produto->quantidade * produto->preco;
+		produto = avl_t_next(trav);
+	}
+
+	avl_trav_free(trav);
+	return faturacao;
+}
+
+Quantidade_st calculaQuantidadeTotalVendida_RegistoClientes(Registos registos){
+	Quantidade_st quantidade_compras = 0;
+	RegistoCliente cliente;
+
+	TravessiaModulo trav = avl_trav_alloc();
+	avl_t_init(trav, registos);
+	cliente = (RegistoCliente) avl_t_next(trav);
+
+	while(cliente){
+		quantidade_compras += cliente->quantidade;
+		cliente = avl_t_next(trav);
+	}
+
+	avl_trav_free(trav);
+	return quantidade_compras;
+}
+
+Preco_st faturacaoTotal_RegistoClientes(Registos registos){
+	Preco_st faturacao = 0;
+	RegistoCliente cliente;
+
+	TravessiaModulo trav = avl_trav_alloc();
+	avl_t_init(trav, registos);
+	cliente = (RegistoCliente) avl_t_next(trav);
+
+	while(cliente){
+		faturacao += cliente->quantidade * cliente->preco;
+		cliente = avl_t_next(trav);
+	}
+
+	avl_trav_free(trav);
+	return faturacao;
+}
+
+Filial_st calcularFilialComMenosClientes(MODULO_GESTAO_FILIAIS modulo){
+	int f, f_min=1;
+	int min = modulo->filial[1]->totalClientes;
+
+	for(f = 1; f <= NRFILIAIS; f++)
+		if(modulo->filial[f]->totalClientes < min){
+			min = modulo->filial[f]->totalClientes;
+			f_min = f;
+		}
+
+	return f_min;
+}
+
+/* TRAVESSIAS */
+
+Quantidade_st quantidadeProdutosClienteComprouNumMes(GestaoCliente cliente, Mes_st m){
+	Quantidade_st compras_normal=0, compras_promocional=0;
+	RegistoProduto produto = NULL;
+
+	if(cliente->mes[m][VENDA_NORMAL] != NULL){
+		TravessiaModulo trav = avl_trav_alloc();
+		avl_t_init(trav, cliente->mes[m][VENDA_NORMAL]);
+		produto = avl_t_next(trav);
+		if(produto!=NULL) compras_normal += produto->quantidade;
+
+		while((produto = avl_t_next(trav))){
+			compras_normal += produto->quantidade;
+		}
+		avl_trav_free(trav);
+	}
+
+	if(cliente->mes[m][VENDA_PROMOCIONAL] != NULL){	
+		TravessiaModulo trav = avl_trav_alloc();
+		avl_t_init(trav, cliente->mes[m][VENDA_PROMOCIONAL]);
+		produto = avl_t_next(trav);
+		if(produto!=NULL) compras_promocional += produto->quantidade;
+
+		while((produto = avl_t_next(trav))){
+			compras_promocional += produto->quantidade;
+		}
+		avl_trav_free(trav);
+	}
+
+	return compras_normal + compras_promocional;
+}
+
+PAGINA_RESULTADOS quantidadeProdutosClienteCompraPorMes(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo){
+	int f, m;
+	GestaoCliente cliente_aux = NULL;
+	PAGINA_RESULTADOS pagina = paginaResultadosInit(NRFILIAIS,12);
+
+	for(f = 1; f <= NRFILIAIS; f++){
+		cliente_aux = clienteFezAlgumaCompra_filial(modulo, codigo, f);
+		if(cliente_aux != NULL){
+			for(m = 0; m < 12; m++){
+				long* numero = malloc(sizeof(long));
+				*numero = quantidadeProdutosClienteComprouNumMes(cliente_aux, m);
+				inserirResultadoLista(pagina, numero);
+			}
+		}else{
+			for(m = 0; m < 12; m++){
+				long* numero = malloc(sizeof(long));
+				*numero = 0;
+				inserirResultadoLista(pagina, numero);
+			}		
+		}
+	}
+
+	transporResultados(pagina);
+	return pagina;
+}
+
+
+Registos listaProdutosClienteComprouNumMes(GestaoCliente cliente, Mes_st mes, Registos produtos){
+	Registos compras = verificaClienteFezComprasNumMes(cliente, mes, VENDA_NORMAL);
+	if(compras != NULL){
+		RegistoProduto produto;
+		TravessiaModulo trav = avl_trav_alloc();
+		avl_t_init(trav, compras);
+		produto = (RegistoProduto) avl_t_next(trav);
+
+		while(produto){
+			RegistoProduto novo_produto = cloneRegistoProduto(produto);
+			inserirRegistoProduto(novo_produto, produtos);
+			produto = avl_t_next(trav);
+		}
+
+		avl_trav_free(trav);
+	}
+
+	compras = verificaClienteFezComprasNumMes(cliente, mes, VENDA_PROMOCIONAL);
+	if(compras != NULL){
+		RegistoProduto produto;
+		TravessiaModulo trav = avl_trav_alloc();
+		avl_t_init(trav, compras);
+		produto = (RegistoProduto) avl_t_next(trav);
+
+		while(produto){
+			RegistoProduto novo_produto = cloneRegistoProduto(produto);
+			inserirRegistoProduto(novo_produto, produtos);
+			produto = avl_t_next(trav);
+		}
+
+		avl_trav_free(trav);
+	}
+
+	return produtos;
+}
+
+Registos listaProdutosClienteComprouNumMesEmTodasAsFiliais(MODULO_GESTAO_FILIAIS modulo, Registos produtos, CodigoCliente_st codigo, Mes_st mes){
+	int f;
+	for(f = 1; f <= NRFILIAIS; f++){
+		GestaoCliente cliente = clienteFezAlgumaCompra_filial(modulo, codigo, f);
+		if(cliente != NULL){
+			listaProdutosClienteComprouNumMes(cliente, mes, produtos);
+		}
+	}
+	return produtos;
+}
+
+PAGINA_RESULTADOS listaProdutosClienteMaisComprou(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo, Mes_st mes){
+	int tamanho;
+	TravessiaModulo trav;
+	PAGINA_RESULTADOS pagina;
+	RegistoProduto produto;
+	Registos produtos = avl_create(compara_registo_produtos, NULL, NULL);
+	produtos = listaProdutosClienteComprouNumMesEmTodasAsFiliais(modulo, produtos, codigo, mes);
+	tamanho = avl_node_count(produtos);
+
+	pagina = (PAGINA_RESULTADOS) paginaResultadosInit(tamanho, 1);
+
+	trav = (TravessiaModulo) avl_trav_alloc();
+	avl_t_init(trav, produtos);
+	produto = avl_t_next(trav);
+
+	while(produto){
+		inserirResultadoLista(pagina, produto);
+		produto = avl_t_next(trav);
+	}
+
+	ordenarResultadosLista(pagina, compara_registo_produtos_por_quantidade_decres);
+	return pagina;
+}
+
+PAGINA_RESULTADOS topProdutosClienteGastouDinheiro(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo){
+	PAGINA_RESULTADOS pagina;
+	RegistoProduto produto;
+	TravessiaModulo trav;
+	Registos produtos = avl_create(compara_registo_produtos, NULL, NULL);
+	
+	int mes, tamanho;
+	for(mes = 0; mes < 12; mes++){
+		produtos = listaProdutosClienteComprouNumMesEmTodasAsFiliais(modulo, produtos, codigo, mes);
+	}
+
+	tamanho = avl_node_count(produtos);
+
+	pagina = (PAGINA_RESULTADOS) paginaResultadosInit(tamanho, 1);
+
+	trav = (TravessiaModulo) avl_trav_alloc();
+	avl_t_init(trav, produtos);
+	produto = (RegistoProduto) avl_t_next(trav);
+
+	while(produto){
+		calculaTotalFaturado_registoProduto(produto);
+		inserirResultadoLista(pagina, produto);
+		produto = avl_t_next(trav);
+	}
+
+	ordenarResultadosLista(pagina, compara_registo_produtos_por_custo_decres);
+	return pagina;
+}
+
+// query 03
+Quantidade_st calculaQuantidadeVendidaProduto(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, Filial_st f, TipoVenda_st t){
+	GestaoProduto produto = encontrarProduto(modulo, codigo, f);
+	Quantidade_st quantidade = 0;
+	Registos registos;
+	int m;
+
+	if(produto == NULL) return 0;
+	else{
+		for(m = 0; m < 12; m++){
+			registos = (Registos) verificaProdutoFoiVendidoNumMes(produto, m, t);
+			if(registos != NULL){
+				quantidade += calculaQuantidadeTotalVendida_RegistoClientes(registos);
+			}
+		}
+	}
+	return quantidade;
+}
+
+Quantidade_st calculaQuantidadeVendidaProduto_global(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, TipoVenda_st t){
+	int f, quantidade = 0;
+	for(f = 1; f <= NRFILIAIS; f++){
+		quantidade += calculaQuantidadeVendidaProduto(modulo, codigo, f, t);
+	}
+	return quantidade;
+}
+
+Preco_st calculaFaturacaoProduto(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, Filial_st f, TipoVenda_st t){
+	GestaoProduto produto = encontrarProduto(modulo, codigo, f);
+	Preco_st faturacao = 0;
+	Registos registos;
+	int m;
+
+	if(produto == NULL) return 0;
+	else{
+		for(m = 0; m < 12; m++){
+			registos = (Registos) verificaProdutoFoiVendidoNumMes(produto, m, t);
+			if(registos != NULL){
+				faturacao += faturacaoTotal_RegistoClientes(registos);
+			}
+		}
+	}
+	return faturacao;
+}
+
+Preco_st calculaFaturacaoProduto_global(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, TipoVenda_st t){
+	int f;
+	Preco_st faturacao = 0;
+	for(f = 1; f <= NRFILIAIS; f++){
+		faturacao += calculaFaturacaoProduto(modulo, codigo, f, t);
+	}
+	return faturacao;
+}
+
+// query 08
+PAGINA_RESULTADOS listaClientesCompraramProduto(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, Filial_st f){
+	GestaoProduto produto = produtoFoiVendido_filial(modulo, codigo, f);
+	int tamanho = produto->nrClientesTotal;
+	RegistoCliente cliente;
+	TravessiaModulo trav;
+	CodigoCliente_st codigoCliente;
+
+	PAGINA_RESULTADOS pagina = (PAGINA_RESULTADOS) paginaResultadosInit(tamanho, 2);
+
+	int m;
+	for(m = 0; m < 12; m++){
+		Registos clientes = verificaProdutoFoiVendidoNumMes(produto, m, VENDA_NORMAL);
+		if(clientes !=NULL){
+			trav = (TravessiaModulo) avl_trav_alloc();
+			avl_t_init(trav, clientes);
+			cliente = (RegistoCliente) avl_t_next(trav);
+
+			while(cliente){
+			char* tipo_N = (char*) malloc(2);
+			strncpy(tipo_N, "N", 2);
+				codigoCliente = getCodCliente_registoCliente(cliente);
+				inserirResultadoLista(pagina, codigoCliente);
+				inserirResultadoLista(pagina, tipo_N);
+				cliente = avl_t_next(trav);
+			}
+		}
+
+		clientes = verificaProdutoFoiVendidoNumMes(produto, m, VENDA_PROMOCIONAL);
+		if(clientes !=NULL){
+			trav = (TravessiaModulo) avl_trav_alloc();
+			avl_t_init(trav, clientes);
+			cliente = (RegistoCliente) avl_t_next(trav);
+	
+			while(cliente){
+			char* tipo_P = (char*) malloc(2);
+			strncpy(tipo_P, "P", 2);
+				codigoCliente = getCodCliente_registoCliente(cliente);
+				inserirResultadoLista(pagina, codigoCliente);
+				inserirResultadoLista(pagina, tipo_P);
+				cliente = avl_t_next(trav);
+			}
+		}
+	}
+	return pagina;
+}
+
+//query 04 (e 12)
+PAGINA_RESULTADOS produtosNinguemComprou_filial(MODULO_GESTAO_FILIAIS modulo, CATALOGO_PRODUTOS catalogo, Filial_st f){
+	int ind; 
+	TravessiaModulo trav;
+	CodigoProduto_st produto;
+	int totalProdutos = calcularTotalProdutos( catalogo );
+	PAGINA_RESULTADOS pagina = (PAGINA_RESULTADOS) paginaResultadosInit(totalProdutos,1);
+
+	for(ind = 0; ind < 27; ind++){
+		trav = avl_trav_alloc();
+		avl_t_init(trav, getCatalogoProdutosPorIndice(catalogo,ind));
+		while( (produto = avl_t_next(trav)) ){
+			if( !produtoFoiVendido_filial(modulo,produto,f) )
+				inserirResultadoLista(pagina, produto);
+		}
+		freeTravessiaCatalogoProdutos(trav);
+	}
+	return pagina;
+}
+
+PAGINA_RESULTADOS produtosNinguemComprou_global(MODULO_GESTAO_FILIAIS modulo, CATALOGO_PRODUTOS catalogo){
+	int ind; 
+	TravessiaModulo trav;
+	CodigoProduto_st produto;
+	int totalProdutos = calcularTotalProdutos( catalogo );
+	PAGINA_RESULTADOS pagina = (PAGINA_RESULTADOS) paginaResultadosInit(totalProdutos,1);
+
+	for(ind = 0; ind < 27; ind++){
+		trav = avl_trav_alloc();
+		avl_t_init(trav, getCatalogoProdutosPorIndice(catalogo,ind));
+		while( (produto = avl_t_next(trav)) ){
+			if( !produtoFoiVendido_global(modulo,produto) ){
+				inserirResultadoLista(pagina, produto);
+			}
+		}
+		freeTravessiaCatalogoProdutos(trav);
+	}
+	return pagina;
+}
+
+//query 12
+PAGINA_RESULTADOS clientesNaoCompraram_filial(MODULO_GESTAO_FILIAIS modulo, CATALOGO_CLIENTES catalogo, Filial_st f){
+	int ind; 
+	TravessiaModulo trav;
+	CodigoCliente_st cliente;
+	int totalClientes = calcularTotalClientes( catalogo );
+	PAGINA_RESULTADOS pagina = (PAGINA_RESULTADOS) paginaResultadosInit(totalClientes,1);
+
+	for(ind = 0; ind < 27; ind++){
+		trav = avl_trav_alloc();
+		avl_t_init(trav, getCatalogoClientesPorIndice(catalogo,ind));
+		while( (cliente = avl_t_next(trav)) ){
+			if( !clienteFezAlgumaCompra_filial(modulo,cliente,f) ){
+				inserirResultadoLista(pagina, cliente);
+			}
+
+		}
+		freeTravessiaCatalogoClientes(trav);
+	}
+	return pagina;
+}
+
+PAGINA_RESULTADOS clientesNaoCompraram_global(MODULO_GESTAO_FILIAIS modulo, CATALOGO_CLIENTES catalogo){
+	int ind; 
+	TravessiaModulo trav;
+	CodigoCliente_st cliente;
+	int totalClientes = calcularTotalClientes( catalogo );
+	PAGINA_RESULTADOS pagina = (PAGINA_RESULTADOS) paginaResultadosInit(totalClientes,1);
+
+	for(ind = 0; ind < 27; ind++){
+		trav = avl_trav_alloc();
+		avl_t_init(trav, getCatalogoClientesPorIndice(catalogo,ind));
+		while( (cliente = avl_t_next(trav)) ){
+			if( !clienteFezAlgumaCompra_global(modulo,cliente) ){
+				inserirResultadoLista(pagina, cliente);
+			}
+		}
+		freeTravessiaCatalogoClientes(trav);
+	}
+	return pagina;
+}
+
+
+
+//query 07
+int verificaClienteComprouTodasFiliais(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo, Filial_st excepto_nesta ){
+	int f, resultado = 1;
+
+	for(f = 1; f <= NRFILIAIS; f++){
+		if(f == excepto_nesta) 
+			continue;
+		else if( !clienteFezAlgumaCompra_filial(modulo,codigo,f) )
+			resultado = 0;
+	}
+
+	return resultado;
+}
+
+PAGINA_RESULTADOS clientesCompraramTodasFiliais(MODULO_GESTAO_FILIAIS modulo){
+	Filial_st filial_menor = calcularFilialComMenosClientes(modulo);
+	PAGINA_RESULTADOS pagina = paginaResultadosInit(getTotalClientesFilial(modulo,filial_menor),1);
+
+	TravessiaModulo trav;
+	GestaoCliente cliente;
+	CodigoCliente_st codigo;
+
+	trav = avl_trav_alloc();
+	avl_t_init(trav, modulo->filial[filial_menor]->clientes);
+	while( (cliente = avl_t_next(trav)) ){
+		codigo = cliente->codigoCliente;
+		if( verificaClienteComprouTodasFiliais(modulo, codigo, filial_menor) ){
+			inserirResultadoLista(pagina, codigo);
+		}
+	}
+
+	return pagina;
+}
+
+//query 10
+
+/*
 void travessiaTesteRegistoProdutos(GestaoCliente modulo){
 	int i,j,nr;
 	printf("\tProdutos comprados:\n");
@@ -449,193 +1062,5 @@ void travessiaTesteGestaoFilial(GestaoFilial modulo){
 		nr++;
 	}
 }
+*/
 
-
-MODULO_GESTAO_FILIAIS inserirVendaModuloGestaoFiliais(MODULO_GESTAO_FILIAIS modulo, VENDA venda){
-	int f = calculaIndicieFilial(venda);
-	/////antes de inserir verificar se produto/cliente existe no catalogo (aprender a usar .h primeiro)
-	inserirNoModuloClientes(modulo->filial[f],venda);
-	//inserirNoModuloProdutos(modulo->filial[f],venda);
-	modulo->totalVendasAdicionadas++;
-	return modulo;
-}
-
-GestaoCliente clienteFezAlgumaCompra(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo, Filial_st filial){
-	GestaoCliente cliente_aux = novoGestaoCliente(codigo);
-	GestaoCliente res = (GestaoCliente) avl_find(modulo->filial[filial]->clientes, cliente_aux);
-	freeImediatoGestaoCliente(cliente_aux,NULL);
-	return res;
-}
-
-Quantidade_st quantidadeProdutosClienteComprouNumMes(GestaoCliente cliente, Mes_st m){
-	Quantidade_st compras_normal=0, compras_promocional=0;
-	RegistoProduto produto = NULL;
-
-	if(cliente->mes[m][VENDA_NORMAL] != NULL){
-		TravessiaModulo trav = avl_trav_alloc();
-		avl_t_init(trav, cliente->mes[m][VENDA_NORMAL]);
-		produto = avl_t_next(trav);
-		if(produto!=NULL) compras_normal += produto->quantidade;
-
-		while((produto = avl_t_next(trav))){
-			compras_normal += produto->quantidade;
-		}
-		avl_trav_free(trav);
-	}
-
-	if(cliente->mes[m][VENDA_PROMOCIONAL] != NULL){	
-		TravessiaModulo trav = avl_trav_alloc();
-		avl_t_init(trav, cliente->mes[m][VENDA_PROMOCIONAL]);
-		produto = avl_t_next(trav);
-		if(produto!=NULL) compras_promocional += produto->quantidade;
-
-		while((produto = avl_t_next(trav))){
-			compras_promocional += produto->quantidade;
-		}
-		avl_trav_free(trav);
-	}
-
-	return compras_normal + compras_promocional;
-}
-
-PAGINA_RESULTADOS quantidadeProdutosClienteCompraPorMes(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo){
-	int f, m;
-	GestaoCliente cliente_aux = NULL;
-	PAGINA_RESULTADOS pagina = paginaResultadosInit(12 * NRFILIAIS,12);
-
-	for(f = 1; f <= NRFILIAIS; f++){
-		cliente_aux = clienteFezAlgumaCompra(modulo, codigo, f);
-		if(cliente_aux != NULL){
-			for(m = 0; m < 12; m++){
-				long* numero = malloc(sizeof(long));
-				*numero = quantidadeProdutosClienteComprouNumMes(cliente_aux, m);
-				inserirResultadoLista(pagina, numero);
-			}
-		}else{
-			for(m = 0; m < 12; m++){
-				long* numero = malloc(sizeof(long));
-				*numero = 0;
-				inserirResultadoLista(pagina, numero);
-			}		
-		}
-	}
-
-	transporResultados(pagina);
-	return pagina;
-}
-
-Registos verificaClienteFezComprasNumMes(GestaoCliente cliente, Mes_st mes, TipoVenda_st tipo){
-	return ( cliente->mes[mes][tipo] );
-}
-
-void listaProdutosClienteComprouNumMes(GestaoCliente cliente, Mes_st mes, Registos produtos){
-	Registos compras = verificaClienteFezComprasNumMes(cliente, mes, VENDA_NORMAL);
-	if(compras != NULL){
-		RegistoProduto produto;
-		TravessiaModulo trav = avl_trav_alloc();
-		avl_t_init(trav, compras);
-		produto = (RegistoProduto) avl_t_next(trav);
-
-		while(produto){
-			RegistoProduto novo_produto = cloneRegistoProduto(produto);
-			inserirRegistoProduto(novo_produto, produtos);
-			produto = avl_t_next(trav);
-		}
-
-		avl_trav_free(trav);
-	}
-
-	compras = verificaClienteFezComprasNumMes(cliente, mes, VENDA_PROMOCIONAL);
-	if(compras != NULL){
-		RegistoProduto produto;
-		TravessiaModulo trav = avl_trav_alloc();
-		avl_t_init(trav, compras);
-		produto = (RegistoProduto) avl_t_next(trav);
-
-		while(produto){
-			RegistoProduto novo_produto = cloneRegistoProduto(produto);
-			inserirRegistoProduto(novo_produto, produtos);
-			produto = avl_t_next(trav);
-		}
-
-		avl_trav_free(trav);
-	}
-}
-
-Registos listaProdutosClienteComprouNumMesEmTodasAsFiliais(MODULO_GESTAO_FILIAIS modulo, Registos produtos, CodigoCliente_st codigo, Mes_st mes){
-	int f;
-	for(f = 1; f <= NRFILIAIS; f++){
-		GestaoCliente cliente = clienteFezAlgumaCompra(modulo, codigo, f);
-		if(cliente != NULL){
-			listaProdutosClienteComprouNumMes(cliente, mes, produtos);
-		}
-	}
-	return produtos;
-}
-
-int compara_registo_produtos_por_quantidade_decres(const void *a, const void *b, void *param) {
-	RegistoProduto produto_a = (RegistoProduto) a;
-	RegistoProduto produto_b = (RegistoProduto) b;
-	return produto_b->quantidade - produto_a->quantidade;
-}
-
-int compara_registo_produtos_por_custo_decres(const void *a, const void *b, void *param) {
-	RegistoProduto produto_a = (RegistoProduto) a;
-	RegistoProduto produto_b = (RegistoProduto) b;
-	return (int) (produto_b->preco - produto_a->preco);
-}
-
-PAGINA_RESULTADOS listaProdutosClienteMaisComprou(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo, Mes_st mes){
-	int tamanho;
-	TravessiaModulo trav;
-	PAGINA_RESULTADOS pagina;
-	RegistoProduto produto;
-	Registos produtos = avl_create(compara_registo_produtos, NULL, NULL);
-	produtos = listaProdutosClienteComprouNumMesEmTodasAsFiliais(modulo, produtos, codigo, mes);
-	tamanho = avl_node_count(produtos);
-
-	pagina = (PAGINA_RESULTADOS) paginaResultadosInit(tamanho, 1);
-
-	trav = (TravessiaModulo) avl_trav_alloc();
-	avl_t_init(trav, produtos);
-	produto = avl_t_next(trav);
-
-	while(produto){
-		inserirResultadoLista(pagina, produto);
-		produto = avl_t_next(trav);
-	}
-
-	ordenarResultadosLista(pagina, compara_registo_produtos_por_quantidade_decres);
-	return pagina;
-}
-
-
-
-PAGINA_RESULTADOS topProdutosClienteGastouDinheiro(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo){
-	PAGINA_RESULTADOS pagina;
-	RegistoProduto produto;
-	TravessiaModulo trav;
-	Registos produtos = avl_create(compara_registo_produtos, NULL, NULL);
-	
-	int mes, tamanho;
-	for(mes = 0; mes < 12; mes++){
-		produtos = listaProdutosClienteComprouNumMesEmTodasAsFiliais(modulo, produtos, codigo, mes);
-	}
-
-	tamanho = avl_node_count(produtos);
-
-	pagina = (PAGINA_RESULTADOS) paginaResultadosInit(tamanho, 1);
-
-	trav = (TravessiaModulo) avl_trav_alloc();
-	avl_t_init(trav, produtos);
-	produto = (RegistoProduto) avl_t_next(trav);
-
-	while(produto){
-		calculaTotalFaturado_registoProduto(produto);
-		inserirResultadoLista(pagina, produto);
-		produto = avl_t_next(trav);
-	}
-
-	ordenarResultadosLista(pagina, compara_registo_produtos_por_custo_decres);
-	return pagina;
-}

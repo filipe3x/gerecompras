@@ -12,51 +12,49 @@
 #include "venda.h"
 #include "navegacao.h"
 #include "catalogo_clientes.h"
-#include "gestao_filiais.h"
 
 struct catalogoClientes {
 	int totalClientes[27];
 	Modulo indice[27];
 };
 
-int calculaIndiceCliente(char l) {
-	char letra = toupper(l);
-	int i = 0;
+static int calculaIndiceCliente(char l);
+static void freeCodigoCliente(void *codigo, void *param);
 
-	if (isalpha(letra)) {
-		i = letra - 'A';
-	} else {
-		i = 26;
-	}
-	return i;
-}
+/* GET'S e SET's */
 
 Modulo getCatalogoClientesPorLetra(CATALOGO_CLIENTES catalogo, char l) {
 	return catalogo->indice[calculaIndiceCliente(l)];
 }
 
-int getTotalClientesPorIndice(CATALOGO_CLIENTES catalogo, int ind){
+Modulo getCatalogoClientesPorIndice(CATALOGO_CLIENTES catalogo, int i) {
+	return catalogo->indice[i];
+}
+
+int getTotalClientes(CATALOGO_CLIENTES catalogo, int ind){
 	return catalogo->totalClientes[ind];
 }
 
 int calcularTotalClientes(CATALOGO_CLIENTES catalogo){
 	int i, somatorio = 0;
 	for(i = 0; i <= 26; i++)
-		somatorio += getTotalClientesPorIndice(catalogo, i);
+		somatorio += getTotalClientes(catalogo, i);
 	return somatorio;
 }
 
-void setTotalClientes(CATALOGO_CLIENTES catalogo, int ind, int valor){
+static void setTotalClientes(CATALOGO_CLIENTES catalogo, int ind, int valor){
 	catalogo->totalClientes[ind] = valor;
 }
 
-void incTotalClientes(CATALOGO_CLIENTES catalogo, int ind){
+static void incTotalClientes(CATALOGO_CLIENTES catalogo, int ind){
 	catalogo->totalClientes[ind]++;
 }
 
-int comparaClienteAlfabeticamente(const void *cliente_a, const void *cliente_b, void *param) {
+static int comparaClienteAlfabeticamente(const void *cliente_a, const void *cliente_b, void *param) {
 	return strcmp((char *) cliente_a, (char *) cliente_b);
 }
+
+/* INICIALIZACAO E FREE */
 
 CATALOGO_CLIENTES catalogoClientesInit(){
 	CATALOGO_CLIENTES catalogo = (CATALOGO_CLIENTES) malloc(sizeof (struct catalogoClientes)); //inicializar array de 27 apontadores para AVLs
@@ -70,10 +68,6 @@ CATALOGO_CLIENTES catalogoClientesInit(){
 	return catalogo;
 }
 
-static void freeCodigoCliente(void *codigo, void *param) {
-	free((CodigoCliente_st) codigo);
-}
-
 void freeCatalogoClientes(CATALOGO_CLIENTES catalogo){
 	int i;
 	
@@ -84,6 +78,12 @@ void freeCatalogoClientes(CATALOGO_CLIENTES catalogo){
 	}
 	free(catalogo);
 }
+
+static void freeCodigoCliente(void *codigo, void *param) {
+	free((CodigoCliente_st) codigo);
+}
+
+/* INSERCOES */
 
 bool existeClienteCatalogo(CATALOGO_CLIENTES catalogo, CodigoCliente_st codigo) {
 	bool resultado = false;
@@ -114,17 +114,26 @@ CodigoCliente_st inserirClienteCatalogo(CATALOGO_CLIENTES catalogo, CodigoClient
 	return c;
 }
 
-void freeTravessiaCatalogoClientes(TravessiaModulo travessia){
-	if(travessia != NULL)
-		avl_trav_free(travessia);
+static int calculaIndiceCliente(char l) {
+	char letra = toupper(l);
+	int i = 0;
+
+	if (isalpha(letra)) {
+		i = letra - 'A';
+	} else {
+		i = 26;
+	}
+	return i;
 }
+
+/* TRAVESSIAS */
 
 PAGINA_RESULTADOS travessiaClientesPorLetra(CATALOGO_CLIENTES catalogo, char letra){
 	int n;
 	CodigoCliente_st cliente;
 	PAGINA_RESULTADOS pagina;
 	int i = calculaIndiceCliente(toupper(letra));
-	int totalResultados = getTotalClientesPorIndice(catalogo,i);
+	int totalResultados = getTotalClientes(catalogo,i);
 
 	TravessiaModulo trav = avl_trav_alloc();
 	avl_t_init(trav, getCatalogoClientesPorLetra(catalogo,letra));
@@ -139,7 +148,6 @@ PAGINA_RESULTADOS travessiaClientesPorLetra(CATALOGO_CLIENTES catalogo, char let
 		n++;
 	}
 
-	/*printf("Total clientes começados por %c: %d\n", toupper(letra), getTotalClientesPorIndice(catalogo, i));*/ 
 	freeTravessiaCatalogoClientes(trav);
 
 	return pagina;
@@ -155,10 +163,13 @@ PAGINA_RESULTADOS testarTravessiaClientes(CATALOGO_CLIENTES catalogo, int (*func
 	ordenarResultadosLista(pagina, funcaoComparacao);
 	percorrerPaginaResultados(pagina, 1, ELEM_POR_PAG, funcaoImpressao);
 
-	printf("Total clientes começados por %c: %d\n", toupper(c), getTotalClientesPorIndice(catalogo, calculaIndiceCliente(c)));
+	printf("Total clientes começados por %c: %d\n", toupper(c), getTotalClientes(catalogo, calculaIndiceCliente(c)));
 
 	return pagina;
 }
 
-
+void freeTravessiaCatalogoClientes(TravessiaModulo travessia){
+	if(travessia != NULL)
+		avl_trav_free(travessia);
+}
 

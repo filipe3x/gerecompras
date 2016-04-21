@@ -12,8 +12,9 @@
 #include "avl.h"
 #include "venda.h"
 #include "navegacao.h"
-#include "gestao_filiais.h"
 #include "catalogo_clientes.h"
+#include "catalogo_produtos.h"
+#include "gestao_filiais.h"
 #include "queries.h"
 #include "menu.h"
 
@@ -361,7 +362,7 @@ int query09_listaProdutosClienteMaisComprou(MODULO_GESTAO_FILIAIS modulo, CATALO
 
 		while(estado == QUERY_09)
 		{
-			query09_imprimirCabecalho_2(input, (double) (tfin - tini)/CLOCKS_PER_SEC);
+			query09_imprimirCabecalho_2(input, Mes[mes], (double) (tfin - tini)/CLOCKS_PER_SEC);
 			query09_imprimirInfo(getPaginaAtual(pagina), getNrPaginasTotal(pagina) + 1, getPosicaoInicial(pagina), getPosicaoFinal(pagina), getIndiceAtual(pagina));
 
 			produto = (RegistoProduto) getElementoAtual(pagina);

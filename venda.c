@@ -8,7 +8,6 @@
 #include <ctype.h>
 
 #include "venda.h"
-// #include "gestao_filiais.h" //para saber quantas filiais temos
 
 struct linhaVenda
 {

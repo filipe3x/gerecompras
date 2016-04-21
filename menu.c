@@ -9,10 +9,31 @@
 #include <time.h>
 #include <stdbool.h>
 
+#include "avl.h"
 #include "venda.h"
 #include "menu.h"
 #include "navegacao.h"
+#include "catalogo_produtos.h"
+#include "catalogo_clientes.h"
 #include "gestao_filiais.h"
+
+/* MENU PRINCIPAL */
+
+void menu_principal(){
+printf("\033[2J\033[1;1H");
+printf("╭────────────────────────────────────────────────────────╮\n");
+printf("│░░░░░░░░░░░░░░░░░░░░ │ GERECOMPRAS │ ░░░░░░░░░░░░░░░░░░░│\n");
+printf("│════════════════════════════════════════════════════════│\n");
+printf("│   ╭──────────────────────╮                             │\n");
+printf("│   │[1]CATÁLOGOS          │                             │\n");
+printf("│   │[2]FATURAÇÃO          │                             │\n");
+printf("│   │[3]GESTÃO DE FILIAIS  │                             │\n");
+printf("│   │[X]Sair               │                             │\n");
+printf("│   ╰──────────────────────╯                             │\n");
+printf("│════════════════════════════════════════════════════════│\n");
+printf("│════════════════════════════════════════════════════════│\n");
+printf("│ Inserir opção > ");
+}
 
 /* QUERY 2 */
 
@@ -136,12 +157,12 @@ void query09_imprimirCabecalho(){
 	printf("│════════════════════════════════════════════════════════│\n");
 }
 
-void query09_imprimirCabecalho_2(String codigo, double tempo){
+void query09_imprimirCabecalho_2(String codigo, String mes, double tempo){
 	printf("\033[2J\033[1;1H");
 	printf("╭────────────────────────────────────────────────────────╮\n");
 	printf("│GERECOMPRAS >> GESTÃO FILIAIS >> QUERY 9 │░░░░░░░░░░░░░░│\n");
 	printf("│════════════════════════════════════════════════════════│\n");
-	printf("│ Produtos mais comprados pelo cliente %6s (%.4f s) │\n",codigo,tempo);
+	printf("│ Mais comprados pelo cliente %5s em %9s (%.4f)│\n",codigo,mes,tempo);
 	printf("│ ╭────────────────────────────────────────────────────╮ │\n");
 	printf("│ │ [1] GESTÃO FILIAIS | [2] Menu Principal | [3] Sair │ │\n");
 	printf("│ ╰────────────────────────────────────────────────────╯ │\n");

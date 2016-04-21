@@ -140,7 +140,7 @@ int calcularIndiceInsercao(PAGINA_RESULTADOS pagina){
 
 PAGINA_RESULTADOS paginaResultadosInit(int tamanhoL, int nrCampos){
 	PAGINA_RESULTADOS pagina = (PAGINA_RESULTADOS) malloc(sizeof(struct paginaResultados));
-	pagina->resultados = (Listagem) malloc(tamanhoL*sizeof( void* )); //array de apontadores para estruturas
+	pagina->resultados = (Listagem) malloc(tamanhoL*nrCampos*sizeof( void* )); //array de apontadores para estruturas
 
 	pagina->tamanhoLista = tamanhoL;
 	pagina->nrCampos = nrCampos;
