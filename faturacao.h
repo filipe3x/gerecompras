@@ -26,6 +26,4 @@ Resultados consultaQuantidadesIntervaloMeses(MODULO_FATURACAO modulo, Mes_st mes
 Resultados consultaQuantidadesFilial(MODULO_FATURACAO modulo, Filial_st filial);
 Resultados consultaQuantidadesMesFilial(MODULO_FATURACAO modulo, Mes_st mes, Filial_st filial);
 
-void travessiaFaturacao(MODULO_FATURACAO modulo); //FAZER MELHOR
-
 #endif /* _FATURACAO_H */

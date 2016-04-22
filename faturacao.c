@@ -261,7 +261,7 @@ Resultados consultaQuantidadesMesFilial(MODULO_FATURACAO modulo, Mes_st mes, Fil
 
 /* TRAVESSIAS */
 
-void travessiaFaturacao(MODULO_FATURACAO modulo){ //FAZER MELHOR
+void travessiaTesteFaturacao(MODULO_FATURACAO modulo){
 	int f, mes;
 	printf("%d\n", getQuantidadeTotalNormal(modulo));
 	printf("%d\n", getQuantidadeTotalPromocional(modulo));
