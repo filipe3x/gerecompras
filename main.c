@@ -2,7 +2,6 @@
  *  *  * Filipe Marques
  *  *  * Laboratórios Informática III, Universidade do Minho, 2016
  *  *  */
-#include <stdio.h>
 #include <stdlib.h>
 #include "venda.h"
 #include "navegacao.h"
