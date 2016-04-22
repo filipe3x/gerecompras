@@ -26,7 +26,7 @@ MODULO_FATURACAO mod_Faturacao;
 
 String FICHEIRO_CLIENTES = "Clientes.txt";
 String FICHEIRO_PRODUTOS = "Produtos.txt";
-String FICHEIRO_VENDAS = "Vendas_1M.txt";
+String FICHEIRO_VENDAS = "Vendas_100K.txt";
 
 const char** argumentos;
 int nrArg;

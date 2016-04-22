@@ -1,6 +1,6 @@
 #ifndef GESTAOFILIAIS_H
 #define GESTAOFILIAIS_H
-
+#include "avl.h"
 typedef struct moduloGestaoFiliais *MODULO_GESTAO_FILIAIS;
 typedef struct gestaoFilial *GestaoFilial;
 
