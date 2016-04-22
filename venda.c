@@ -38,9 +38,9 @@ Codigo cloneCodigo(Codigo codigo){
 	Codigo novoCodigo;
 
 	novoCodigo = (Codigo) malloc(tamanho + 1);
-    strncpy(novoCodigo, codigo, tamanho + 1);
+	strncpy(novoCodigo, codigo, tamanho + 1);
 
-    return novoCodigo;
+	return novoCodigo;
 }
 
 void freeCodigo(Codigo codigo){
