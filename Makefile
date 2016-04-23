@@ -1,15 +1,14 @@
 CC = gcc
-CFLAGS = -pedantic -Wall -std=gnu89 -g
-#CFLAGS = -pedantic -ansi -Wall -g
+CFLAGS = -ansi -pedantic -Wall -g -O2
 VALFLAGS = --tool=memcheck --leak-check=full
 
 objects = queries.o venda.o avl.o navegacao.o menu.o faturacao.o gestao_filiais.o catalogo_clientes.o catalogo_produtos.o leitura_ficheiros.o main.o
 
-gerecompras: $(objects)
-	$(CC) $(CFLAGS) -o gerecompras $(objects)
+gerevendas: $(objects)
+	$(CC) $(CFLAGS) -o gerevendas $(objects)
 
-run: gerecompras
-	./gerecompras
+run: gerevendas
+	./gerevendas
 
 recompile:
 	make clean
@@ -17,9 +16,13 @@ recompile:
 
 valgrind:
 	make
-	valgrind $(VALFLAGS) ./gerecompras
+	valgrind $(VALFLAGS) ./gerevendas
+
+entrega: recompile
+	rm -f LI3_Grupo3.zip
+	zip LI3_Grupo3.zip Makefile *.c *.h
 
 .PHONY: clean
 clean :
-	rm -f gerecompras
+	rm -f gerevendas
 	rm -f $(objects)
