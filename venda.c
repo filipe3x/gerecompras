@@ -128,11 +128,11 @@ Filial_st calculaIndicieFilial(VENDA venda) {
 }
 
 VENDA clonelinhaVenda(VENDA origem, VENDA novaVenda){
-	setCodigoProduto(novaVenda, getCodigoProduto(origem)); //clone
+	setCodigoProduto(novaVenda, getCodigoProduto(origem));
 	setPreco(novaVenda, getPreco(origem));
 	setQuantidade(novaVenda, getQuantidade(origem));
 	setTipoVenda(novaVenda, getTipoVenda(origem));
-	setCodigoCliente(novaVenda, getCodigoCliente(origem)); //clone
+	setCodigoCliente(novaVenda, getCodigoCliente(origem));
 	setMes(novaVenda, getMes(origem));
 	setFilial(novaVenda, getFilial(origem));
 	return novaVenda;
@@ -154,8 +154,7 @@ StringVenda lerLinhaVenda(String linha, StringVenda strings){
 
 VENDA inserirLinhaVenda(VENDA structVenda, StringVenda strings){
 	structVenda->codigoProduto = (char*) strings->codigoProduto;
-	structVenda->preco = (double) strtod(strings->preco, NULL); //guardar como inteiro em centimos
-	//structVenda->preco = (double) atof(strings.preco); //guardar como inteiro em centimos
+	structVenda->preco = (double) strtod(strings->preco, NULL);
 	structVenda->quantidade = (int) strtol(strings->quantidade, (char **)NULL, 10);
 	structVenda->tipoVenda = (char) *(strings->tipoVenda) == 'P' ? 1 : 0;
 	structVenda->codigoCliente = (char*) strings->codigoCliente;
@@ -177,8 +176,6 @@ void imprimirLinhaVenda(VENDA structVenda){
 	printf("mes: %s\n",Mes[getMes(structVenda)]);
 	printf("filial: %d\n",getFilial(structVenda));
 }
-
-////
 
 int verificaCodigoProduto(Codigo produto){
 	if(strlen(produto) != TAMANHO_COD_PRODUTO) return 0;
