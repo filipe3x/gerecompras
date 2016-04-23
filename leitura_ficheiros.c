@@ -26,11 +26,15 @@ MODULO_FATURACAO mod_Faturacao;
 
 String FICHEIRO_CLIENTES = "Clientes.txt";
 String FICHEIRO_PRODUTOS = "Produtos.txt";
-String FICHEIRO_VENDAS = "Vendas_100K.txt";
+String FICHEIRO_VENDAS = "Vendas_1M.txt";
 
 const char** argumentos;
 int nrArg;
 int STATUS;
+float TEMPOS_LEITURA = 0;
+long NRCLIENTES;
+long NRPRODUTOS;
+long NRVENDAS;
 
 static int abrirFicheiros();
 static void abrirFicheiroClientes(String nomeFicheiro);
@@ -122,6 +126,7 @@ static void abrirFicheiroVendas(String nomeFicheiro){
 	VENDA novaVenda  = linhaVendaInit();
 	StringVenda structStrVendas = stringVendaInit();
 
+	printf("===VENDAS===\n");
 	tini = clock();
 	while(fgets(linhaLida, MAX_BUFFER_VENDAS, ficheiroVendas) && i < MAXLINHAS){
 		linhaLida[strcspn( linhaLida, "\r\n")] = 0;
@@ -139,10 +144,10 @@ static void abrirFicheiroVendas(String nomeFicheiro){
 	freeStringVenda(structStrVendas);
 	free(novaVenda);
 	free(linhaLida);
-	printf("===VENDAS===\n");
+	TEMPOS_LEITURA += (double) (tfin - tini)/CLOCKS_PER_SEC;
 	printf("Ficheiro: %s\n", nomeFicheiro);
 	printf("Total Linhas Lidas: %d\n", i );
-	printf("Total Linhas Válidas: %d\n", getTotalVendasAdicionadas(moduloGestaoFiliais) );
+	printf("Total Linhas Válidas: %ld\n", NRVENDAS = getTotalVendasAdicionadas(moduloGestaoFiliais) );
 	printf("Leitura feita em %.3f segundos.\n ", (double) (tfin - tini)/CLOCKS_PER_SEC);
 }
 
@@ -154,6 +159,7 @@ static void abrirFicheiroClientes(String nomeFicheiro){
 	String linhaLida = (String) malloc(64);
 	FILE *ficheiroClientes = fopen(nomeFicheiro, "r");
 
+	printf("===CLIENTES===\n");
 	tini = clock();
 	while(fgets(linhaLida, MAX_BUFFER_CATALOGO, ficheiroClientes) && nrlinhasLidas < MAXLINHAS){
 		linhaLida[strcspn( linhaLida, "\r\n")] = 0;
@@ -165,11 +171,10 @@ static void abrirFicheiroClientes(String nomeFicheiro){
 	free(linhaLida);
 	fclose(ficheiroClientes);
 	tfin = clock();
-
-	printf("===CLIENTES===\n");
+	TEMPOS_LEITURA += (double) (tfin - tini)/CLOCKS_PER_SEC;
 	printf("Ficheiro: %s\n", nomeFicheiro);
 	printf("Total Linhas Lidas: %d\n", nrlinhasLidas );
-	printf("Total Linhas Válidas: %d\n", calcularTotalClientes(catalogo));
+	printf("Total Linhas Válidas: %ld\n", NRCLIENTES = calcularTotalClientes(catalogo));
 	printf("Leitura feita em %.3f segundos.\n ", (double) (tfin - tini)/CLOCKS_PER_SEC);
 
 }
@@ -182,6 +187,7 @@ static void abrirFicheiroProdutos(String nomeFicheiro){
 	String linhaLida = (String) malloc(64);
 	FILE *ficheiroProdutos = fopen(nomeFicheiro, "r");
 
+	printf("===PRODUTOS===\n");
 	tini = clock();
 	while(fgets(linhaLida, MAX_BUFFER_CATALOGO, ficheiroProdutos) && nrlinhasLidas < MAXLINHAS){
 		linhaLida[strcspn( linhaLida, "\r\n")] = 0;
@@ -192,11 +198,10 @@ static void abrirFicheiroProdutos(String nomeFicheiro){
 	free(linhaLida);
 	fclose(ficheiroProdutos);
 	tfin = clock();
-
-	printf("===PRODUTOS===\n");
+	TEMPOS_LEITURA += (double) (tfin - tini)/CLOCKS_PER_SEC;
 	printf("Ficheiro: %s\n", nomeFicheiro);
 	printf("Total Linhas Lidas: %d\n", nrlinhasLidas );
-	printf("Total Linhas Válidas: %d\n", calcularTotalProdutos(catalogo));
+	printf("Total Linhas Válidas: %ld\n", NRPRODUTOS = calcularTotalProdutos(catalogo));
 	printf("Leitura feita em %.3f segundos.\n ", (double) (tfin - tini)/CLOCKS_PER_SEC);
 }
 
