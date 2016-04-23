@@ -2,9 +2,19 @@
 #define _QUERIES_H
 
 int query02_catalogoClientes( CATALOGO_CLIENTES );
+int query02_catalogoProdutos( CATALOGO_PRODUTOS );
+int query03_quantidadeFaturacaoProduto_filial(MODULO_GESTAO_FILIAIS modulo, CATALOGO_PRODUTOS catalogo);
+int query03_quantidadeFaturacaoProduto_global(MODULO_GESTAO_FILIAIS modulo, CATALOGO_PRODUTOS catalogo);
+int query04_produtosNinguemComprou_filial(MODULO_GESTAO_FILIAIS modulo, CATALOGO_PRODUTOS catalogo);
+int query04_produtosNinguemComprou_global(MODULO_GESTAO_FILIAIS modulo, CATALOGO_PRODUTOS catalogo);
 int query05_nrProdutosCompradosPeloCliente(MODULO_GESTAO_FILIAIS modulo, CATALOGO_CLIENTES catalogo);
+int query06_faturacaoIntervaloMeses(MODULO_FATURACAO);
+int query07_clientesCompraramTodasAsFiliais(MODULO_GESTAO_FILIAIS modulo);
+int query08_listaClientesCompraramProduto_filial(MODULO_GESTAO_FILIAIS modulo, CATALOGO_PRODUTOS catalogo);
 int query09_listaProdutosClienteMaisComprou(MODULO_GESTAO_FILIAIS, CATALOGO_CLIENTES);
+int query10_topProdutosMaisComprados_filial(MODULO_GESTAO_FILIAIS modulo, CATALOGO_PRODUTOS catalogo);
+int query10_topProdutosMaisComprados_global(MODULO_GESTAO_FILIAIS modulo, CATALOGO_PRODUTOS catalogo);
 int query11_topProdutosClienteGastouDinheiro(MODULO_GESTAO_FILIAIS modulo, CATALOGO_CLIENTES catalogo);
-
+int query12_NrClientesSemCompras_NrProdutosNinguemComprou(MODULO_GESTAO_FILIAIS moduloGestao, CATALOGO_CLIENTES catalogoClientes, CATALOGO_PRODUTOS catalogoProdutos);
 
 #endif /* _QUERIES_H */
