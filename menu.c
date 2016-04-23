@@ -11,221 +11,373 @@
 
 #include "avl.h"
 #include "venda.h"
-#include "menu.h"
 #include "navegacao.h"
 #include "catalogo_produtos.h"
 #include "catalogo_clientes.h"
 #include "gestao_filiais.h"
+#include "menu.h"
+#include "faturacao.h"
+#include "leitura_ficheiros.h"
+#include "queries.h"
+
+extern float TEMPOS_LEITURA;
+extern long NRCLIENTES;
+extern long NRPRODUTOS;
+extern long NRVENDAS;
+
+static int menu_catalogos();
+static int menu_faturacao();
+static int menu_gestao_filiais();
+static int query03_escolha();
+static int query04_escolha();
+static int query10_escolha();
 
 /* MENU PRINCIPAL */
 
+static void imprimir_menu_principal(){
+	printf("\033[2J\033[1;1H");
+	printf("╭────────────────────────────────────────────────────────╮\n");
+	printf("│░░░░░░░░░░░░░░░░░░░░░ │ GEREVENDAS │ ░░░░░░░░░░░░░░░░░░░│\n");
+	printf("│════════════════════════════════════════════════════════│\n");
+	printf("│   ╭──────────────────────╮                             │\n");
+	printf("│   │[1]CATÁLOGOS          │                             │\n");
+	printf("│   │[2]FATURAÇÃO          │                             │\n");
+	printf("│   │[3]GESTÃO DE FILIAIS  │                             │\n");
+	printf("│   │[X]Sair               │                             │\n");
+	printf("│   ╰──────────────────────╯                             │\n");
+	printf("│                                                        │\n");
+	printf("│                               %15ld Clientes │\n",NRCLIENTES);
+	printf("│                               %15ld Produtos │\n",NRPRODUTOS);
+	printf("│                               %15ld Vendas   │\n",NRVENDAS);
+	printf("│   (em %6.3f segundos)                                 │\n",TEMPOS_LEITURA);
+	printf("│════════════════════════════════════════════════════════│\n");
+	printf("│════════════════════════════════════════════════════════│\n");
+	printf("│ Inserir opção > ");
+}
+
 void menu_principal(){
-printf("\033[2J\033[1;1H");
-printf("╭────────────────────────────────────────────────────────╮\n");
-printf("│░░░░░░░░░░░░░░░░░░░░ │ GERECOMPRAS │ ░░░░░░░░░░░░░░░░░░░│\n");
-printf("│════════════════════════════════════════════════════════│\n");
-printf("│   ╭──────────────────────╮                             │\n");
-printf("│   │[1]CATÁLOGOS          │                             │\n");
-printf("│   │[2]FATURAÇÃO          │                             │\n");
-printf("│   │[3]GESTÃO DE FILIAIS  │                             │\n");
-printf("│   │[X]Sair               │                             │\n");
-printf("│   ╰──────────────────────╯                             │\n");
-printf("│════════════════════════════════════════════════════════│\n");
-printf("│════════════════════════════════════════════════════════│\n");
-printf("│ Inserir opção > ");
-}
+	int estado = MENU_PRINCIPAL;
+	char input[INPUT_BUFFER];
+	char opt;
 
-/* QUERY 2 */
+	while(estado == MENU_PRINCIPAL){
+		imprimir_menu_principal();
 
-void query02_funcaoImpressao(int pos, void *s){
-	printf("│ │ %5d │ %8s │                                   │\n", pos, (char *) s);
-}
+		if(scanf("%s", input) > 0){
+			opt = input[0];
 
-void query02_imprimirCabecalho(){
-	printf("\033[2J\033[1;1H");
-	printf("╭────────────────────────────────────────────────────────╮\n");
-	printf("│GERECOMPRAS >> CATÁLOGOS >> QUERY 2 │░░░░░░░░░░░░░░░░░░░│\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-	printf("│ Listar clientes começados pela letra...                │\n");
-	printf("│ ╭───────────────────────────────────────────────╮      │\n");
-	printf("│ │ [1] CATÁLOGOS | [2] Menu Principal | [3] Sair │      │\n");
-	printf("│ ╰───────────────────────────────────────────────╯      │\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-}
-
-void query02_imprimirCabecalho_2(char letra, double tempo){
-	printf("\033[2J\033[1;1H");
-	printf("╭────────────────────────────────────────────────────────╮\n");
-	printf("│GERECOMPRAS >> CATÁLOGOS >> QUERY 2 │░░░░░░░░░░░░░░░░░░░│\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-	printf("│ Mostrando clientes começados por %c (em %.5f seg.)   │\n",letra,tempo);
-	printf("│ ╭───────────────────────────────────────────────╮      │\n");
-	printf("│ │ [1] CATÁLOGOS | [2] Menu Principal | [3] Sair │      │\n");
-	printf("│ ╰───────────────────────────────────────────────╯      │\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-}
-
-void query02_imprimirInfo(int paginaAtual, int paginasTotais, int posIni, int posFin, int nrResultadosTotal){
-	printf("│ Pág. %05d/%05d # %06d-%06d de %06d resultados  │\n", paginaAtual+1, paginasTotais-1, posIni+1, posFin+1, nrResultadosTotal);
-	printf("│ ┌───────┬──────────┐                                   │\n");
-	printf("│ │     # │  Código  │                                   │\n");
-}
-
-/* QUERY 5 */
-
-void query02_imprimirRodape(){
-	printf("│ ╰───────┴──────────╯                                   │\n");
-	printf("│<<[4]   <[5]  < # >  [6]>   [7]>> || Opção > ");
-}
-
-void query05_imprimirCabecalho(){
-	printf("\033[2J\033[1;1H");
-	printf("╭────────────────────────────────────────────────────────╮\n");
-	printf("│GERECOMPRAS >> GESTÃO FILIAIS >> QUERY 5 │░░░░░░░░░░░░░░│\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-	printf("│ Nº produtos comprados pelo cliente...                  │\n");
-	printf("│ ╭────────────────────────────────────────────────────╮ │\n");
-	printf("│ │ [1] GESTÃO FILIAIS | [2] Menu Principal | [3] Sair │ │\n");
-	printf("│ ╰────────────────────────────────────────────────────╯ │\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-}
-
-void query05_imprimirCabecalho_2(String codigo, double tempo){
-	printf("\033[2J\033[1;1H");
-	printf("╭────────────────────────────────────────────────────────╮\n");
-	printf("│GERECOMPRAS >> GESTÃO FILIAIS >> QUERY 5 │░░░░░░░░░░░░░░│\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-	printf("│ Nº produtos comprados pelo cliente %7s (%.4f seg)│\n",codigo,tempo);
-	printf("│ ╭────────────────────────────────────────────────────╮ │\n");
-	printf("│ │ [1] GESTÃO FILIAIS | [2] Menu Principal | [3] Sair │ │\n");
-	printf("│ ╰────────────────────────────────────────────────────╯ │\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-}
-
-void query05_imprimirInfo(int nrFiliais){
-	int f;
-	printf("│    MÊS    │");
-
-	f = 1;
-	while(f <= nrFiliais){
-		printf(" Filial %d │",f);
-		f++;
+			switch (toupper(opt)) {
+				case '1': estado = menu_catalogos();
+					break;
+				case '2': estado = menu_faturacao();
+					break;
+				case '3': estado = menu_gestao_filiais();
+					break;
+				case 'X': estado = SAIR;
+				case 'Q': estado = SAIR;
+				case 'S': estado = SAIR;
+					break;
+				default:
+					estado = MENU_PRINCIPAL;
+					break;
+			}
+		}else{
+			printf("│ Opções disponíveis: [1] CATÁLOGOS; [2] FATURAÇÃO; [3] GESTÃO DE FILIAIS; [X] Sair.\n");
+		}
 	}
-
-	printf("           │\n");
 }
 
-void query05_funcaoImpressao(void** dados, const String mes, int nrFiliais){
-	int f;
-	printf("│ %9s │", mes);
+/* CATALOGOS */
 
-	f = 0;
-	while(f < nrFiliais){
-		printf(" %8ld │",*(long*)dados[f]);
-		f++;
+static void imprimir_menu_catalogos(){
+	printf("\033[2J\033[1;1H");
+	printf("╭────────────────────────────────────────────────────────╮\n");
+	printf("│ GEREVENDAS >> CATÁLOGOS │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│\n");
+	printf("│════════════════════════════════════════════════════════│\n");
+	printf("│╭───────────────────────────────────────────────╮       │\n");
+	printf("││ [1] CLIENTES | [2] Menu Principal | [3] Sair  │       │\n");
+	printf("│╰───────────────────────────────────────────────╯       │\n");
+	printf("│╭─────────────────────────────────────────────────╮     │\n");
+	printf("││[1] Catálogo de clientes começados por uma letra │     │\n");
+	printf("││[4] Catálogo de produtos começados por uma letra │     │\n");
+	printf("│╰─────────────────────────────────────────────────╯     │\n");
+	printf("│ Inserir opção > ");
+}
+
+static int menu_catalogos(){
+	int estado = MENU_CATALOGOS;
+	char input[INPUT_BUFFER];
+	char opt;
+
+	while(estado == MENU_CATALOGOS){
+
+		imprimir_menu_catalogos();
+
+		if(scanf("%s", input) > 0){
+			opt = input[0];
+
+			switch (opt) {
+				case '1': estado = query02_catalogoClientes( cat_Clientes );
+					break;
+				case '2': estado = MENU_PRINCIPAL;
+					break;
+				case '3': estado = SAIR;
+					break;
+				case '4': estado = query02_catalogoProdutos( cat_Produtos );
+					break;
+				default:
+					estado = MENU_PRINCIPAL;
+					break;
+			}
+		}
 	}
-
-	printf("           │\n");
+	return estado;
 }
 
+/* FATURACAO */
 
-void query05_imprimirRodape(int nrFiliais){
-	int f;
-	printf("│───────────╯");
+static void imprimir_menu_faturacao(){
+	printf("\033[2J\033[1;1H");
+	printf("╭────────────────────────────────────────────────────────╮\n");
+	printf("│ GEREVENDAS >> FATURAÇÃO │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│\n");
+	printf("│════════════════════════════════════════════════════════│\n");
+	printf("│╭────────────────────────────────────────────────╮      │\n");
+	printf("││ [1] FATURAÇÃO | [2] Menu Principal | [3] Sair  │      │\n");
+	printf("│╰────────────────────────────────────────────────╯      │\n");
+	printf("│╭──────────────────────────────────────────────────────╮│\n");
+	printf("││[1]Quantidades vendidas e faturação num dado intervalo││\n");
+	printf("│╰──────────────────────────────────────────────────────╯│\n");
+	printf("│ Inserir opção > ");
+}
 
-	f = 1;
-	while(f <= nrFiliais){
-		printf("──────────╯");
-		f++;
+static int menu_faturacao(){
+	int estado = MENU_FATURACAO;
+	char input[INPUT_BUFFER];
+	char opt;
+
+	while(estado == MENU_FATURACAO){
+
+		imprimir_menu_faturacao();
+
+		if(scanf("%s", input) > 0){
+			opt = input[0];
+
+			switch (opt) {
+				case '1': estado = query06_faturacaoIntervaloMeses( mod_Faturacao );
+					break;
+				case '2': estado = MENU_PRINCIPAL;
+					break;
+				case '3': estado = SAIR;
+					break;
+				default:
+					estado = MENU_PRINCIPAL;
+					break;
+			}
+		}
 	}
-
-	printf("           │\n");
-	printf("│ Opção > ");
+	return estado;
 }
 
-/* QUERY 9 */
+/* GESTAO DE FILIAIS */
 
-void query09_imprimirCabecalho(){
+static void imprimir_menu_gestao_filiais(){
 	printf("\033[2J\033[1;1H");
 	printf("╭────────────────────────────────────────────────────────╮\n");
-	printf("│GERECOMPRAS >> GESTÃO FILIAIS >> QUERY 9 │░░░░░░░░░░░░░░│\n");
+	printf("│ GEREVENDAS >> GESTÃO DE FILIAIS │░░░░░░░░░░░░░░░░░░░░░░│\n");
 	printf("│════════════════════════════════════════════════════════│\n");
-	printf("│ Produtos mais comprados pelo cliente...                │\n");
-	printf("│ ╭────────────────────────────────────────────────────╮ │\n");
-	printf("│ │ [1] GESTÃO FILIAIS | [2] Menu Principal | [3] Sair │ │\n");
-	printf("│ ╰────────────────────────────────────────────────────╯ │\n");
-	printf("│════════════════════════════════════════════════════════│\n");
+	printf("│╭────────────────────────────────────────────────────╮  │\n");
+	printf("││ [1] MAIS VENDIDOS | [2] Menu Principal | [3] Sair  │  │\n");
+	printf("│╰────────────────────────────────────────────────────╯  │\n");
+	printf("│╭──────────────────────────────────────────────────────╮│\n");
+	printf("││[1] Os produtos mais vendidos durante o ano           ││\n");
+	printf("││[4] Vendas e faturação de um produto num dado mês     ││\n");
+	printf("││[5] Nº produtos comprados por um cliente mês a mês    ││\n");
+	printf("││[6] Lista produtos cliente mais comprou num dado mês  ││\n");
+	printf("││[7] Top produtos um dado cliente mais gastou dinheiro ││\n");
+	printf("││[8] Lista e número de produtos que ninguém comprou    ││\n");
+	printf("││[9] Clientes que compraram em todas as filiais        ││\n");
+	printf("││[A] Lista de clientes que compraram um dado produto   ││\n");
+	printf("││[B] Nº de clientes e produtos sem registo de vendas   ││\n");
+	printf("│╰──────────────────────────────────────────────────────╯│\n");
+	printf("│ Inserir opção > ");
 }
 
-void query09_imprimirCabecalho_2(String codigo, String mes, double tempo){
-	printf("\033[2J\033[1;1H");
-	printf("╭────────────────────────────────────────────────────────╮\n");
-	printf("│GERECOMPRAS >> GESTÃO FILIAIS >> QUERY 9 │░░░░░░░░░░░░░░│\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-	printf("│ Mais comprados pelo cliente %5s em %9s (%.4f)│\n",codigo,mes,tempo);
-	printf("│ ╭────────────────────────────────────────────────────╮ │\n");
-	printf("│ │ [1] GESTÃO FILIAIS | [2] Menu Principal | [3] Sair │ │\n");
-	printf("│ ╰────────────────────────────────────────────────────╯ │\n");
-	printf("│════════════════════════════════════════════════════════│\n");
+static int menu_gestao_filiais(){
+	int estado = MENU_GESTAO_FILIAIS;
+	char input[INPUT_BUFFER];
+	char opt;
+
+	while(estado == MENU_GESTAO_FILIAIS){
+
+		imprimir_menu_gestao_filiais();
+
+		if(scanf("%s", input) > 0){
+			opt = input[0];
+
+			switch (toupper(opt)) {
+				case '1': estado = query10_escolha();
+					break;
+				case '2': estado = MENU_PRINCIPAL;
+					break;
+				case '3': estado = SAIR;
+					break;
+				case '4': estado = query03_escolha();
+					break;
+				case '5': estado = query05_nrProdutosCompradosPeloCliente(mod_Gestao, cat_Clientes );
+					break;
+				case '6': estado = query09_listaProdutosClienteMaisComprou(mod_Gestao, cat_Clientes);
+					break;
+				case '7': estado = query11_topProdutosClienteGastouDinheiro(mod_Gestao, cat_Clientes);
+					break;
+				case '8': estado = query04_escolha();
+					break;
+				case '9': estado = query07_clientesCompraramTodasAsFiliais(mod_Gestao);
+					break;
+				case 'A': estado = query08_listaClientesCompraramProduto_filial( mod_Gestao, cat_Produtos);
+					break;
+				case 'B': estado = query12_NrClientesSemCompras_NrProdutosNinguemComprou(mod_Gestao, cat_Clientes, cat_Produtos);
+					break;
+				default:
+					estado = MENU_PRINCIPAL;
+					break;
+			}
+		}
+	}
+	return estado;
 }
 
-void query09_imprimirInfo(int paginaAtual, int paginasTotais, int posIni, int posFin, int nrResultadosTotal){
-	printf("│ Pág. %05d/%05d # %06d-%06d de %06d resultados  │\n", paginaAtual+1, paginasTotais-1, posIni+1, posFin+1, nrResultadosTotal);
-	printf("│ ┌───────┬──────────┬──────────┐                        │\n");
-	printf("│ │     # │  Código  │Quantidade│                        │\n");
+/* QUERY 03 */
+
+static int query03_escolha(){
+	int estado = QUERY_03;
+	char input[INPUT_BUFFER];
+	char opt;
+
+	while(estado == QUERY_03){
+		printf("\033[2J\033[1;1H");
+		printf("╭────────────────────────────────────────────────────────╮\n");
+		printf("│ GEREVENDAS >> GESTÃO FILIAIS >> QUERY 3 │░░░░░░░░░░░░░░│\n");
+		printf("│════════════════════════════════════════════════════════│\n");
+		printf("│ Nº vendas e total faturado pelo produto num dado mês...│\n");
+		printf("│ ╭─────────────────────────────────────────────╮        │\n");
+		printf("│ │ [1] GLOBAIS | [2] Menu Principal | [3] Sair │        │\n");
+		printf("│ ╰─────────────────────────────────────────────╯        │\n");
+		printf("│ ╭───────────────────────────────╮                      │\n");
+		printf("│ │[1] Resultados Globais         │                      │\n");
+		printf("│ │[4] Resultados filial a filial │                      │\n");
+		printf("│ ╰───────────────────────────────╯                      │\n");
+		printf("│ Inserir opção > ");
+
+		if(scanf("%s", input) > 0){
+			opt = input[0];
+
+			switch (opt) {
+				case '1': estado = query03_quantidadeFaturacaoProduto_global( mod_Gestao, cat_Produtos );
+					break;				
+				case '2': estado = MENU_PRINCIPAL;
+					break;
+				case '3': estado = SAIR;
+					break;
+				case '4': estado = query03_quantidadeFaturacaoProduto_filial( mod_Gestao, cat_Produtos );
+					break;
+				default:
+					estado = MENU_GESTAO_FILIAIS;
+					break;
+			}
+		}
+	}
+	return estado;
 }
 
-void query09_funcaoImpressao(int pos, void *produto){
-	printf("│ │ %5d │  %6s  │ %9d│                        │\n", pos, getCodProduto_registoProduto(produto), getQuantidade_registoProduto(produto));
+/* QUERY 04 */
+
+static int query04_escolha(){
+	int estado = QUERY_04;
+	char input[INPUT_BUFFER];
+	char opt;
+
+	while(estado == QUERY_04){
+		printf("\033[2J\033[1;1H");
+		printf("╭────────────────────────────────────────────────────────╮\n");
+		printf("│ GEREVENDAS >> GESTÃO FILIAIS >> QUERY 4 │░░░░░░░░░░░░░░│\n");
+		printf("│════════════════════════════════════════════════════════│\n");
+		printf("│ Lista de produtos que ninguém comprou...               │\n");
+		printf("│ ╭─────────────────────────────────────────────╮        │\n");
+		printf("│ │ [1] GLOBAIS | [2] Menu Principal | [3] Sair │        │\n");
+		printf("│ ╰─────────────────────────────────────────────╯        │\n");
+		printf("│ ╭───────────────────────────────╮                      │\n");
+		printf("│ │[1] Resultados Globais         │                      │\n");
+		printf("│ │[4] Resultados filial a filial │                      │\n");
+		printf("│ ╰───────────────────────────────╯                      │\n");
+		printf("│ Inserir opção > ");
+
+		if(scanf("%s", input) > 0){
+			opt = input[0];
+
+			switch (opt) {
+				case '1': estado = query04_produtosNinguemComprou_global(mod_Gestao, cat_Produtos);
+					break;				
+				case '2': estado = MENU_PRINCIPAL;
+					break;
+				case '3': estado = SAIR;
+					break;
+				case '4': estado = query04_produtosNinguemComprou_filial(mod_Gestao, cat_Produtos);
+					break;
+				default:
+					estado = MENU_GESTAO_FILIAIS;
+					break;
+			}
+		}
+	}
+	return estado;
 }
 
-void query09_imprimirRodape(){
-	printf("│ ╰───────┴──────────┴──────────╯                        │\n");
-	printf("│<<[4]   <[5]  < # >  [6]>   [7]>> || Opção > ");
+/* QUERY 10 */
+
+static int query10_escolha(){
+	int estado = QUERY_10;
+	char input[INPUT_BUFFER];
+	char opt;
+
+	while(estado == QUERY_10){
+		printf("\033[2J\033[1;1H");
+		printf("╭────────────────────────────────────────────────────────╮\n");
+		printf("│ GEREVENDAS >> GESTÃO FILIAIS >> QUERY 10 │░░░░░░░░░░░░░│\n");
+		printf("│════════════════════════════════════════════════════════│\n");
+		printf("│ Os produtos mais vendidos em todo o ano...             │\n");
+		printf("│ ╭─────────────────────────────────────────────╮        │\n");
+		printf("│ │ [1] GLOBAIS | [2] Menu Principal | [3] Sair │        │\n");
+		printf("│ ╰─────────────────────────────────────────────╯        │\n");
+		printf("│ ╭───────────────────────────────╮                      │\n");
+		printf("│ │[1] Resultados Globais         │                      │\n");
+		printf("│ │[4] Resultados filial a filial │                      │\n");
+		printf("│ ╰───────────────────────────────╯                      │\n");
+		printf("│ Inserir opção > ");
+
+		if(scanf("%s", input) > 0){
+			opt = input[0];
+
+			switch (opt) {
+				case '1': estado = query10_topProdutosMaisComprados_global( mod_Gestao , cat_Produtos );
+					break;				
+				case '2': estado = MENU_PRINCIPAL;
+					break;
+				case '3': estado = SAIR;
+					break;
+				case '4': estado = query10_topProdutosMaisComprados_filial( mod_Gestao , cat_Produtos );
+					break;
+				default:
+					estado = MENU_GESTAO_FILIAIS;
+					break;
+			}
+		}
+	}
+	return estado;
 }
 
-/* QUERY 11 */
-
-void query11_imprimirCabecalho(){
-	printf("\033[2J\033[1;1H");
-	printf("╭────────────────────────────────────────────────────────╮\n");
-	printf("│GERECOMPRAS >> GESTÃO FILIAIS >> QUERY 11 │░░░░░░░░░░░░░│\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-	printf("│ Produtos com mais gastos pelo cliente...               │\n");
-	printf("│ ╭────────────────────────────────────────────────────╮ │\n");
-	printf("│ │ [1] GESTÃO FILIAIS | [2] Menu Principal | [3] Sair │ │\n");
-	printf("│ ╰────────────────────────────────────────────────────╯ │\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-}
-
-void query11_imprimirCabecalho_2(String codigo, double tempo){
-	printf("\033[2J\033[1;1H");
-	printf("╭────────────────────────────────────────────────────────╮\n");
-	printf("│GERECOMPRAS >> GESTÃO FILIAIS >> QUERY 11 │░░░░░░░░░░░░░│\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-	printf("│ Ranking produtos onde %6s mais gastou (%.4f s)    │\n",codigo,tempo);
-	printf("│ ╭────────────────────────────────────────────────────╮ │\n");
-	printf("│ │ [1] GESTÃO FILIAIS | [2] Menu Principal | [3] Sair │ │\n");
-	printf("│ ╰────────────────────────────────────────────────────╯ │\n");
-	printf("│════════════════════════════════════════════════════════│\n");
-}
-
-void query11_imprimirInfo(int paginaAtual, int paginasTotais, int posIni, int posFin, int nrResultadosTotal){
-	printf("│ Pág. %05d/%05d # %06d-%06d de %06d resultados  │\n", paginaAtual+1, paginasTotais-1, posIni+1, posFin+1, nrResultadosTotal);
-	printf("│ ┌───────┬──────────┬───────────────┐                   │\n");
-	printf("│ │     # │  Código  │    Gastos     │                   │\n");
-}
-
-void query11_funcaoImpressao(int pos, void *produto){
-	printf("│ │ %5d │  %6s  │ %12.2f  │                   │\n", pos, getCodProduto_registoProduto(produto), getPreco_registoProduto(produto));
-}
-
-void query11_imprimirRodape(){
-	printf("│ ╰───────┴──────────┴───────────────╯                   │\n");
-	printf("│<<[4]   <[5]  < # >  [6]>   [7]>> || Opção > ");
-}
+/* AJUDA */
 
 void ajuda(){
 	fprintf(stderr, "\tComando de execução:\n");
-	fprintf(stderr, "./gerecompras [ <ficheiro_clientes.txt> <ficheiro_produtos.txt> <ficheiro_vendas.txt> ]\n");
+	fprintf(stderr, "./gerevendas [ <ficheiro_clientes.txt> <ficheiro_produtos.txt> <ficheiro_vendas.txt> ]\n");
 }

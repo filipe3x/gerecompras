@@ -14,40 +14,4 @@ typedef enum estadoMenu {
 void menu_principal();
 void ajuda();
 
-void query02_imprimirCabecalho();
-void query02_imprimirCabecalho_2(char letra, double tempo);
-void query02_imprimirInfo(int paginaAtual, int paginasTotais, int posIni, int posFin, int nrResultadosTotal);
-void query02_funcaoImpressao(int pos, void *s);
-void query02_imprimirRodape();
-
-void query05_imprimirCabecalho();
-void query05_imprimirCabecalho_2(String codigo, double tempo);
-void query05_imprimirInfo(int nrFiliais);
-void query05_funcaoImpressao(void** dados, const String mes, int nrFiliais);
-void query05_imprimirRodape(int nrFiliais);
-
-void query09_imprimirCabecalho();
-void query09_imprimirCabecalho_2(String codigo, String mes, double tempo);
-void query09_imprimirInfo(int paginaAtual, int paginasTotais, int posIni, int posFin, int nrResultadosTotal);
-void query09_funcaoImpressao(int pos, void *produto);
-void query09_imprimirRodape();
-
-void query11_imprimirCabecalho();
-void query11_imprimirCabecalho_2(String codigo, double tempo);
-void query11_imprimirInfo(int paginaAtual, int paginasTotais, int posIni, int posFin, int nrResultadosTotal);
-void query11_funcaoImpressao(int pos, void *produto);
-void query11_imprimirRodape();
-
-void query03_filial_imprimirCabecalho();
-void query03_filial_imprimirCabecalho_2(String codigo, double tempo);
-void query03_filial_imprimirInfo(int nrFiliais);
-void query03_filial_funcaoImpressao(void** dados, const String mes, int nrFiliais);
-void query03_filial_imprimirRodape(int nrFiliais);
-
-void query03_global_imprimirCabecalho();
-void query03_global_imprimirCabecalho_2(String codigo, double tempo);
-void query03_global_imprimirInfo(int nrFiliais);
-void query03_global_funcaoImpressao(void** dados, const String mes, int nrFiliais);
-void query03_global_imprimirRodape(int nrFiliais);
-
 #endif	/* _MENU_ */
