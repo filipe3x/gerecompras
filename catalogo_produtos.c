@@ -57,11 +57,11 @@ static int comparaProdutoAlfabeticamente(const void *produto_a, const void *prod
 /* INICIALIZACAO E FREE */
 
 CATALOGO_PRODUTOS catalogoProdutosInit(){
-	CATALOGO_PRODUTOS catalogo = (CATALOGO_PRODUTOS) malloc(sizeof (struct catalogoProdutos)); //inicializar array de 27 apontadores para AVLs
+	CATALOGO_PRODUTOS catalogo = (CATALOGO_PRODUTOS) malloc(sizeof (struct catalogoProdutos)); 
 
 	int i;
-	for (i = 0; i <= 26; i++){ // inicializar 27 AVLs, uma para cada letra do alfabeto
-		catalogo->indice[i] = avl_create(comparaProdutoAlfabeticamente, NULL, NULL); //a funcao que inicializa a avl precisa de saber qual a funcao de comparacao, respeitando assim o principio de encapsulamento
+	for (i = 0; i <= 26; i++){ 
+		catalogo->indice[i] = avl_create(comparaProdutoAlfabeticamente, NULL, NULL);
 		setTotalProdutos(catalogo, i, 0);
 	}
 
@@ -104,8 +104,8 @@ CodigoProduto_st inserirProdutoCatalogo(CATALOGO_PRODUTOS catalogo, CodigoProdut
 	CodigoProduto_st novo = cloneCodigo(codigo);
 	CodigoProduto_st c =  (CodigoProduto_st) avl_insert(catalogo->indice[i], novo);
 
-	if(c == NULL) incTotalProdutos(catalogo, i); //nao encontrou repetido - insersao com sucesso
-	else freeCodigo(novo); //caso ja exista fazer free
+	if(c == NULL) incTotalProdutos(catalogo, i); 
+	else freeCodigo(novo); 
 
 	return c;
 }

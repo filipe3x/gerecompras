@@ -57,11 +57,11 @@ static int comparaClienteAlfabeticamente(const void *cliente_a, const void *clie
 /* INICIALIZACAO E FREE */
 
 CATALOGO_CLIENTES catalogoClientesInit(){
-	CATALOGO_CLIENTES catalogo = (CATALOGO_CLIENTES) malloc(sizeof (struct catalogoClientes)); //inicializar array de 27 apontadores para AVLs
+	CATALOGO_CLIENTES catalogo = (CATALOGO_CLIENTES) malloc(sizeof (struct catalogoClientes));
 
 	int i;
-	for (i = 0; i <= 26; i++){ // inicializar 27 AVLs, uma para cada letra do alfabeto
-		catalogo->indice[i] = avl_create(comparaClienteAlfabeticamente, NULL, NULL); //a funcao que inicializa a avl precisa de saber qual a funcao de comparacao, respeitando assim o principio de encapsulamento
+	for (i = 0; i <= 26; i++){ 
+		catalogo->indice[i] = avl_create(comparaClienteAlfabeticamente, NULL, NULL); 
 		setTotalClientes(catalogo, i, 0);
 	}
 
@@ -108,8 +108,8 @@ CodigoCliente_st inserirClienteCatalogo(CATALOGO_CLIENTES catalogo, CodigoClient
 	CodigoCliente_st novo = cloneCodigo(codigo);
 	CodigoCliente_st c =  (CodigoCliente_st) avl_insert(catalogo->indice[i], novo);
 
-	if(c == NULL) incTotalClientes(catalogo, i); //nao encontrou repetido - insersao com sucesso
-	else freeCodigo(novo); //caso ja exista fazer free
+	if(c == NULL) incTotalClientes(catalogo, i); 
+	else freeCodigo(novo); 
 
 	return c;
 }
