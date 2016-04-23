@@ -47,9 +47,13 @@ Registos verificaProdutoFoiVendidoNumMes(GestaoProduto produto, Mes_st mes, Tipo
 Filial_st calcularFilialComMenosClientes(MODULO_GESTAO_FILIAIS modulo);
 
 Quantidade_st calculaQuantidadeVendidaProduto(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, Filial_st f, TipoVenda_st t);
+Quantidade_st calculaQuantidadeVendidaProduto_mes(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, Filial_st f, TipoVenda_st t, Mes_st m);
 Quantidade_st calculaQuantidadeVendidaProduto_global(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, TipoVenda_st t);
+Quantidade_st calculaQuantidadeVendidaProduto_global_mes(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, TipoVenda_st t, Mes_st m);
 Preco_st calculaFaturacaoProduto(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, Filial_st f, TipoVenda_st t);
+Preco_st calculaFaturacaoProduto_mes(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, Filial_st f, TipoVenda_st t, Mes_st m);
 Preco_st calculaFaturacaoProduto_global(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, TipoVenda_st t);
+Preco_st calculaFaturacaoProduto_global_mes(MODULO_GESTAO_FILIAIS modulo, CodigoProduto_st codigo, TipoVenda_st t, Mes_st m);
 
 PAGINA_RESULTADOS quantidadeProdutosClienteCompraPorMes(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo);
 PAGINA_RESULTADOS listaProdutosClienteMaisComprou(MODULO_GESTAO_FILIAIS modulo, CodigoCliente_st codigo, Mes_st mes);
