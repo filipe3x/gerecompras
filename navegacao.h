@@ -51,4 +51,8 @@ void* getnElemento(PAGINA_RESULTADOS pagina, int n);
 
 void* getMultiplosElementos(PAGINA_RESULTADOS pagina);
 
+void estadoPaginacao(PAGINA_RESULTADOS pagina);
+
+int getNrCampos(PAGINA_RESULTADOS pagina);
+
 #endif /* _NAVEGACAO_ */

@@ -15,9 +15,9 @@
 struct paginaResultados{
 	Listagem resultados;
 	int tamanhoLista;
-	int tamanhoCadaElemento; //EM BYTES
+	int tamanhoCadaElemento;
 	int nrCampos;
-	int indiceAtual; //so para insercoes
+	int indiceAtual; /*insercoes*/
 	
 	int nrPaginaAtual;
 	int nrPaginasTotal;
@@ -44,11 +44,11 @@ void** getListagem(PAGINA_RESULTADOS pagina){
 }
 
 void* getnElemento(PAGINA_RESULTADOS pagina, int n){
-	return (void *) (pagina->resultados[n]); //da me o apontador da estrutura no indice n
+	return (void *) (pagina->resultados[n]); 
 }
 
 void** getnElementos(PAGINA_RESULTADOS pagina, int n){
-	return (void **) ( ( pagina->resultados ) + n); //da me o endereco de Listagem no indice n
+	return (void **) ( ( pagina->resultados ) + n); 
 }
 
 int getIndiceAtual(PAGINA_RESULTADOS pagina){
@@ -80,7 +80,11 @@ int getNrElementosPorPagina(PAGINA_RESULTADOS pagina){
 }
 
 void setNrElementosPorPagina(PAGINA_RESULTADOS pagina, int n){
-	int max = getIndiceAtual(pagina);
+	int max = 0;
+	if(getNrCampos(pagina) != 0)
+		max = getIndiceAtual(pagina) / getNrCampos(pagina);
+	else
+		max = getIndiceAtual(pagina);
 
 	if(n > max) pagina->nrElementosPorPagina = max;
 	else pagina->nrElementosPorPagina = n;
@@ -103,7 +107,8 @@ void setPaginaAtual(PAGINA_RESULTADOS pagina, int pag){
 }
 
 void setNrPaginasTotal(PAGINA_RESULTADOS pagina, int pag){
-	pagina->nrPaginasTotal = pag;
+	if(pag == 0) pagina->nrPaginasTotal = 1;
+	else pagina->nrPaginasTotal = pag;
 }
 
 void setNrCampos(PAGINA_RESULTADOS pagina, int nrCampos){
@@ -140,10 +145,12 @@ int calcularIndiceInsercao(PAGINA_RESULTADOS pagina){
 
 PAGINA_RESULTADOS paginaResultadosInit(int tamanhoL, int nrCampos){
 	PAGINA_RESULTADOS pagina = (PAGINA_RESULTADOS) malloc(sizeof(struct paginaResultados));
-	pagina->resultados = (Listagem) malloc(tamanhoL*nrCampos*sizeof( void* )); //array de apontadores para estruturas
+	pagina->resultados = (Listagem) malloc(tamanhoL*nrCampos*sizeof( void* )); 
 
-	pagina->tamanhoLista = tamanhoL;
+	pagina->tamanhoLista = tamanhoL*nrCampos;
 	pagina->nrCampos = nrCampos;
+
+	pagina->tamanhoCadaElemento = 0;
 
 	pagina->indiceAtual = 0;	
 	pagina->nrPaginaAtual = 0;
@@ -173,16 +180,23 @@ void estadoPaginacao(PAGINA_RESULTADOS pagina){
 	int nrPaginaAtual = getPaginaAtual(pagina);
 	int nrElementosPorPagina = getNrElementosPorPagina(pagina);
 	int posicaoInicial = getPosicaoInicial(pagina);
+	int posicaoAtual = getPosicaoAtual(pagina);
 	int posicaoFinal = getPosicaoFinal(pagina);
+	int nrCampos = getNrCampos(pagina);
+	int nrPaginasTotal = getNrPaginasTotal(pagina);
 
 	printf("- tamanhoLista %d - tamanhoCadaElemento %d - indiceAtual %d -\n", tamanhoLista, tamanhoCadaElemento, indiceAtual);
+
+	printf("nrPaginasTotal %d\n", nrPaginasTotal);
+	printf("nrCampos %d\n", nrCampos);
 	printf("nrPaginaAtual %d\n", nrPaginaAtual);
 	printf("nrElementosPorPagina %d\n", nrElementosPorPagina);
 	printf("posicaoInicial %d\n", posicaoInicial);
+	printf("posicaoAtual %d\n", posicaoAtual);
 	printf("posicaoFinal %d\n", posicaoFinal);
 }
 
-void* inserirResultadoLista(PAGINA_RESULTADOS pagina, void* item){ //FAZER DEEP COPY - E FEITO FORA DESTA FUNCAO
+void* inserirResultadoLista(PAGINA_RESULTADOS pagina, void* item){ 
 	pagina->resultados[getIndiceAtual(pagina)] = item;
 	incIndiceAtual(pagina);
 	return item;
@@ -193,11 +207,17 @@ bool testeUltimaPagina(PAGINA_RESULTADOS pagina){
 }
 
 int calcularNrPaginasInteiras(int nrCamposTotaldeTodosOsElementos, int nrCamposCadaElemento, int nrElementosPorPagina){
-	return nrCamposTotaldeTodosOsElementos / (nrElementosPorPagina * nrCamposCadaElemento);
+	if (nrElementosPorPagina == 0) 
+		return 0;
+	else
+		return nrCamposTotaldeTodosOsElementos / (nrElementosPorPagina * nrCamposCadaElemento);
 }
 
 int calcularNrElementosUltimaPagina(int nrCamposTotaldeTodosOsElementos, int nrCamposCadaElemento, int nrElementosPorPagina){
-	return nrCamposTotaldeTodosOsElementos % (nrElementosPorPagina * nrCamposCadaElemento);
+	if (nrElementosPorPagina == 0) 
+		return 0;
+	else
+		return nrCamposTotaldeTodosOsElementos % (nrElementosPorPagina * nrCamposCadaElemento);
 }
 
 void calcularUltimaPag(PAGINA_RESULTADOS pagina){
@@ -205,7 +225,7 @@ void calcularUltimaPag(PAGINA_RESULTADOS pagina){
 	int nrElementosUltimaPag = calcularNrElementosUltimaPagina(getIndiceAtual(pagina), getNrCampos(pagina), getNrElementosPorPagina(pagina));
 
 	if(nrElementosUltimaPag == 0){ 
-		nrPagina--;
+		if(nrPagina) nrPagina--;
 		setPaginaAtual(pagina, nrPagina);
 		setPosicaoInicial(pagina, nrPagina * getNrElementosPorPagina(pagina) * getNrCampos(pagina));
 		setPosicaoFinal(pagina, getPosicaoInicial(pagina) +  getNrElementosPorPagina(pagina) * getNrCampos(pagina) - 1);
@@ -243,7 +263,7 @@ int virarPagina(PAGINA_RESULTADOS pagina){
 		return 0;
 	}
 
-	if (posicaoFin + nrElemPorPag * nrCampos >= max){ //chegamos ao fim
+	if (posicaoFin + nrElemPorPag * nrCampos >= max){ 
 		int nrElementosUltimaPag = calcularNrElementosUltimaPagina(getIndiceAtual(pagina), nrCampos, getNrElementosPorPagina(pagina));
 		if(nrElementosUltimaPag > 0) calcularUltimaPag(pagina);
 		return 0;
@@ -262,7 +282,7 @@ int paginaParaTras(PAGINA_RESULTADOS pagina){
 	int posicaoInic = getPosicaoInicial(pagina);
 	if(getPaginaAtual(pagina) == 0){
 			setPosicaoAtual(pagina, 0);
-			return 0; //ja estamos na primeira pagina
+			return 0; 
 	}else{
 		decPaginaAtual(pagina);
 		setPosicaoInicial(pagina, posicaoInic - nrElemPorPag * nrCampos);
@@ -273,11 +293,12 @@ int paginaParaTras(PAGINA_RESULTADOS pagina){
 }
 
 void posicoesInit(PAGINA_RESULTADOS pagina){
-	int nrpag = getPaginaAtual(pagina);
-	int elemPorPag = getNrElementosPorPagina(pagina);
-	int nrCampos = getNrCampos(pagina);
+	int nrpag = getPaginaAtual(pagina); 
+	int elemPorPag = getNrElementosPorPagina(pagina); 
+	int nrCampos = getNrCampos(pagina); 
 
 	setPosicaoInicial(pagina, nrpag * elemPorPag * nrCampos);
+			
 	setPosicaoFinal(pagina, getPosicaoInicial(pagina) + elemPorPag * nrCampos - 1 * nrCampos);
 	setPosicaoAtual(pagina, nrpag * elemPorPag * nrCampos);
 
@@ -289,7 +310,7 @@ void imprimirPagina(PAGINA_RESULTADOS pagina, void (*funcaoImpressao)() ){
 	int fim = getPosicaoFinal(pagina);
 
 	while( i  <= fim ){
-		funcaoImpressao( getnElemento(pagina, i) ); //mandei o endereco da estrutura para fora
+		funcaoImpressao( getnElemento(pagina, i) ); 
 		i++;
 	}
 }
@@ -298,11 +319,9 @@ void* getElementoAtual(PAGINA_RESULTADOS pagina){
 	int p = getPosicaoAtual(pagina);
 	int fim = getPosicaoFinal(pagina);
 	int nrCampos = getNrCampos(pagina);
-	// printf("getPosicaoAtual %d - getPosicaoFinal %d - getNrCampos %d\n", p,fim,nrCampos);
 
 	if( p  <= fim ){
 		void* elemento = getnElemento(pagina, p);
-		// printf("%ld %ld %ld %ld\n", *((long*) elemento) , elemento , ((long*) elemento)[1] , (long*)elemento+1 );
 		incPosicaoAtualNvezes(pagina,nrCampos);
 		return elemento;
 	}else{
@@ -312,13 +331,11 @@ void* getElementoAtual(PAGINA_RESULTADOS pagina){
 
 void* getMultiplosElementos(PAGINA_RESULTADOS pagina){
 	int p = getPosicaoAtual(pagina);
-	int fim = getPosicaoFinal(pagina);
 	int nrCampos = getNrCampos(pagina);
-	// printf("getPosicaoAtual %d - getPosicaoFinal %d - getNrCampos %d\n", p,fim,nrCampos);
+	int fim = getPosicaoFinal(pagina);
 
-	if( p <= fim ){
+	if( p  <= fim ){
 		void** elementos = getnElementos(pagina, p);
-		// printf("%ld %ld %ld %ld\n", *((long*) elemento) , elemento , ((long*) elemento)[1] , (long*)elemento+1 );
 		incPosicaoAtualNvezes(pagina,nrCampos);
 		return elementos;
 	}else{
@@ -338,7 +355,6 @@ void percorrerPaginaResultados(PAGINA_RESULTADOS pagina, int nrPag, int elemPorP
 	}
 }
 
-// n = tamanho
 static void quicksort(void **resultados, int (*f_comparacao)() , int n, void *param){
 	int i, j;
 	void *p, *temp;
@@ -366,8 +382,8 @@ void ordenarResultadosLista(PAGINA_RESULTADOS pagina, int (*funcaoComparacao)() 
 
 PAGINA_RESULTADOS transporResultados(PAGINA_RESULTADOS pagina) {
 	int n;
-	int N = getTamanhoLista(pagina) / getNrCampos(pagina); //3
-	int M = getNrCampos(pagina); //12
+	int N = getTamanhoLista(pagina) / getNrCampos(pagina); 
+	int M = getNrCampos(pagina); 
 	Listagem dst = (Listagem) malloc( getTamanhoLista(pagina) * sizeof( void* ) );
 	Listagem src = pagina->resultados;
 
