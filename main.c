@@ -10,7 +10,6 @@
 #include "catalogo_produtos.h"
 #include "gestao_filiais.h"
 #include "leitura_ficheiros.h"
-#include "queries.h"
 #include "menu.h"
 
 int main(int argc, char const *argv[]){

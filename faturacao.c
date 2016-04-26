@@ -6,7 +6,6 @@
 #include <stdlib.h>
 
 #include "venda.h"
-#include "navegacao.h"
 #include "faturacao.h"
 
 struct contas{

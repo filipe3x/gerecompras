@@ -5,19 +5,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <time.h>
-#include <stdbool.h>
 
-#include "avl.h"
 #include "venda.h"
 #include "navegacao.h"
 #include "catalogo_clientes.h"
 #include "catalogo_produtos.h"
 #include "gestao_filiais.h"
 #include "faturacao.h"
-#include "leitura_ficheiros.h"
 #include "menu.h"
+#include "leitura_ficheiros.h"
 
 CATALOGO_CLIENTES cat_Clientes;
 CATALOGO_PRODUTOS cat_Produtos;

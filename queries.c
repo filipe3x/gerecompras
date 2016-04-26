@@ -3,13 +3,10 @@
  *  *  * Laboratórios Informática III, Universidade do Minho, 2016
  *  *  */
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include <stdbool.h>
 
-#include "avl.h"
 #include "venda.h"
 #include "navegacao.h"
 #include "catalogo_clientes.h"
@@ -17,8 +14,8 @@
 #include "gestao_filiais.h"
 #include "faturacao.h"
 #include "leitura_ficheiros.h"
-#include "queries.h"
 #include "menu.h"
+#include "queries.h"
 
 static void query02_cli_imprimirCabecalho();
 static void query02_cli_imprimirCabecalho_2(char letra, double tempo);
